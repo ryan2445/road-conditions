@@ -8,6 +8,7 @@ from typing import Any, NotRequired, TypedDict
 
 import clip
 import jinja2
+import numpy as np
 import requests
 import torch
 from PIL import Image
@@ -38,11 +39,25 @@ class CameraResult(TypedDict):
     id: str
     name: str
     error: bool
-    probabilities: dict[str, float] | None
+    clearness_score: float | None
     image_bytes: NotRequired[bytes]
 
 
-LABELS: list[str] = ["a plowed road", "a clear road", "a dry road"]
+POSITIVE_PROMPTS: list[str] = [
+    "a clear road surface with snow piled on the sides",
+    "a road with asphalt pavement",
+    "a plowed road",
+    "a dry road surface",
+]
+
+NEGATIVE_PROMPTS: list[str] = [
+    "a road covered in snow",
+    "snow on the road surface",
+    "an icy slippery road",
+    "an unplowed snowy road",
+]
+
+ALL_PROMPTS: list[str] = POSITIVE_PROMPTS + NEGATIVE_PROMPTS
 
 
 def load_model() -> (
@@ -50,8 +65,16 @@ def load_model() -> (
 ):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, preprocess = clip.load("ViT-B/32", device=device, download_root="/tmp")
-    text = clip.tokenize(LABELS).to(device)
+    text = clip.tokenize(ALL_PROMPTS).to(device)
     return model, preprocess, text, device
+
+
+def compute_clearness_score(logits: np.ndarray) -> float:
+    """Compute a 0-1 clearness score from CLIP logits using contrastive scoring."""
+    positive_mean = logits[: len(POSITIVE_PROMPTS)].mean()
+    negative_mean = logits[len(POSITIVE_PROMPTS) :].mean()
+    difference = positive_mean - negative_mean
+    return float(1.0 / (1.0 + np.exp(-difference * 0.5)))
 
 
 def load_cameras(path: str = "cameras.json") -> dict[str, list[CameraConfig]]:
@@ -81,7 +104,7 @@ def check_cameras(
                     "id": camera_id,
                     "name": camera_name,
                     "error": True,
-                    "probabilities": None,
+                    "clearness_score": None,
                 }
             )
             continue
@@ -92,16 +115,16 @@ def check_cameras(
 
         with torch.no_grad():
             logits_per_image, _ = model(image_tensor, text)
-            probs = logits_per_image.softmax(dim=-1).cpu().numpy()[0]
+            logits = logits_per_image.cpu().numpy()[0]
+
+        clearness_score = compute_clearness_score(logits)
 
         results.append(
             {
                 "id": camera_id,
                 "name": camera_name,
                 "error": False,
-                "probabilities": {
-                    label: float(prob) for label, prob in zip(LABELS, probs)
-                },
+                "clearness_score": clearness_score,
                 "image_bytes": image_bytes,
             }
         )
@@ -110,26 +133,18 @@ def check_cameras(
 
 
 def format_report(results: list[CameraResult]) -> str:
-    label_widths = [max(len(label), 8) + 2 for label in LABELS]
-
     lines: list[str] = []
-    header = f"{'ID':<8} {'Name':<30} " + " ".join(
-        f"{label:<{w}}" for label, w in zip(LABELS, label_widths)
-    )
+    header = f"{'ID':<8} {'Name':<30} {'Road Clear':<12}"
     lines.append(header)
     lines.append("-" * len(header))
 
     for result in results:
         if result["error"]:
-            error_cols = " ".join(f"{'Error':<{w}}" for w in label_widths)
-            lines.append(f"{result['id']:<8} {result['name']:<30} {error_cols}")
+            lines.append(f"{result['id']:<8} {result['name']:<30} {'Error':<12}")
         else:
-            probs = result["probabilities"]
-            assert probs is not None
-            prob_cols = " ".join(
-                f"{probs[label]:.2%}".ljust(w) for label, w in zip(LABELS, label_widths)
-            )
-            lines.append(f"{result['id']:<8} {result['name']:<30} {prob_cols}")
+            score = result["clearness_score"]
+            assert score is not None
+            lines.append(f"{result['id']:<8} {result['name']:<30} {score:.0%}")
 
     return "\n".join(lines)
 
@@ -137,11 +152,11 @@ def format_report(results: list[CameraResult]) -> str:
 def generate_email(results: list[CameraResult]) -> str:
     """Format report as HTML with embedded images for email."""
     template = get_template("email.html.jinja")
-    return template.render(results=results, labels=LABELS)
+    return template.render(results=results)
 
 
 def generate_web_page(results: list[CameraResult]) -> str:
     """Format report as standalone HTML page with base64 images."""
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     template = get_template("web_page.html.jinja")
-    return template.render(results=results, labels=LABELS, timestamp=timestamp)
+    return template.render(results=results, timestamp=timestamp)

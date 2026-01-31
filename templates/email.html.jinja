@@ -1,18 +1,20 @@
 <html><body>
 <h2>Snow on Road Report</h2>
+<p style="color: #666; font-size: 14px;">Road Clear score: 0% = snow-covered, 100% = clear road</p>
 <table border='1' cellpadding='8' cellspacing='0'>
-<tr><th>ID</th><th>Name</th><th>Image</th>
-{%- for label in labels %}<th>{{ label }}</th>{% endfor %}</tr>
+<tr><th>ID</th><th>Name</th><th>Image</th><th>Road Clear</th></tr>
 {%- for result in results %}
 <tr>
 <td>{{ result.id }}</td>
 <td>{{ result.name }}</td>
 {%- if result.error %}
 <td>Error</td>
-{%- for _ in labels %}<td>Error</td>{% endfor %}
+<td>Error</td>
 {%- else %}
 <td><img src='cid:camera_{{ result.id }}' width='320'></td>
-{%- for label in labels %}<td>{{ "%.2f%%"|format(result.probabilities[label] * 100) }}</td>{% endfor %}
+{%- set score = result.clearness_score %}
+{%- set hue = (score * 120)|int %}
+<td style="background-color: hsl({{ hue }}, 70%, 80%); font-weight: bold;">{{ "%.0f%%"|format(score * 100) }}</td>
 {%- endif %}
 </tr>
 {%- endfor %}
