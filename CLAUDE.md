@@ -16,7 +16,7 @@ uv sync
 uv run python main.py
 
 # Build Docker image
-docker build -t snow-on-road .
+DOCKER_BUILDKIT=1 docker build --platform linux/arm64 --provenance=false -t snow-on-road .
 
 # Deploy infrastructure
 cd terraform && terraform apply

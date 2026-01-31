@@ -10,7 +10,7 @@ LABELS = ["a plowed road", "a clear road", "a dry road"]
 
 def load_model():
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model, preprocess = clip.load("ViT-B/32", device=device)
+    model, preprocess = clip.load("ViT-B/32", device=device, download_root="/tmp")
     text = clip.tokenize(LABELS).to(device)
     return model, preprocess, text, device
 

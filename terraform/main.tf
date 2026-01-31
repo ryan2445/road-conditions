@@ -46,6 +46,22 @@ resource "aws_iam_role_policy_attachment" "lambda_basic" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+resource "aws_iam_role_policy" "lambda_ses" {
+  name = "${var.project_name}-ses-policy"
+  role = aws_iam_role.lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "ses:SendEmail"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 resource "aws_lambda_function" "snow_on_road" {
   function_name = var.project_name
   role          = aws_iam_role.lambda_role.arn
@@ -53,7 +69,7 @@ resource "aws_lambda_function" "snow_on_road" {
   image_uri     = "${aws_ecr_repository.snow_on_road.repository_url}:latest"
   architectures = ["arm64"]
   timeout       = 300
-  memory_size   = 2048
+  memory_size   = 4096
 
   environment {
     variables = {
@@ -62,10 +78,6 @@ resource "aws_lambda_function" "snow_on_road" {
   }
 
   depends_on = [aws_ecr_repository.snow_on_road]
-
-  lifecycle {
-    ignore_changes = [image_uri]
-  }
 }
 
 resource "aws_cloudwatch_log_group" "lambda_logs" {
