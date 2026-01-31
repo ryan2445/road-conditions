@@ -15,5 +15,6 @@ COPY snow_checker.py ${LAMBDA_TASK_ROOT}/
 COPY main.py ${LAMBDA_TASK_ROOT}/
 COPY cameras.json ${LAMBDA_TASK_ROOT}/
 COPY lambda_handler.py ${LAMBDA_TASK_ROOT}/
+COPY templates/ ${LAMBDA_TASK_ROOT}/templates/
 
 CMD ["lambda_handler.handler"]

@@ -1,0 +1,19 @@
+<html><body>
+<h2>Snow on Road Report</h2>
+<table border='1' cellpadding='8' cellspacing='0'>
+<tr><th>ID</th><th>Name</th><th>Image</th>
+{%- for label in labels %}<th>{{ label }}</th>{% endfor %}</tr>
+{%- for result in results %}
+<tr>
+<td>{{ result.id }}</td>
+<td>{{ result.name }}</td>
+{%- if result.error %}
+<td>Error</td>
+{%- for _ in labels %}<td>Error</td>{% endfor %}
+{%- else %}
+<td><img src='cid:camera_{{ result.id }}' width='320'></td>
+{%- for label in labels %}<td>{{ "%.2f%%"|format(result.probabilities[label] * 100) }}</td>{% endfor %}
+{%- endif %}
+</tr>
+{%- endfor %}
+</table></body></html>
