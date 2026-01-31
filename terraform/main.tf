@@ -13,7 +13,7 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
-resource "aws_ecr_repository" "snow_on_road" {
+resource "aws_ecr_repository" "road_analysis" {
   name                 = var.project_name
   image_tag_mutability = "MUTABLE"
   force_delete         = true
@@ -23,8 +23,8 @@ resource "aws_ecr_repository" "snow_on_road" {
   }
 }
 
-resource "aws_ecr_lifecycle_policy" "snow_on_road" {
-  repository = aws_ecr_repository.snow_on_road.name
+resource "aws_ecr_lifecycle_policy" "road_analysis" {
+  repository = aws_ecr_repository.road_analysis.name
 
   policy = jsonencode({
     rules = [
@@ -128,11 +128,11 @@ resource "aws_s3_bucket_policy" "reports" {
   depends_on = [aws_s3_bucket_public_access_block.reports]
 }
 
-resource "aws_lambda_function" "snow_on_road" {
+resource "aws_lambda_function" "road_analysis" {
   function_name = var.project_name
   role          = aws_iam_role.lambda_role.arn
   package_type  = "Image"
-  image_uri     = "${aws_ecr_repository.snow_on_road.repository_url}:latest"
+  image_uri     = "${aws_ecr_repository.road_analysis.repository_url}:latest"
   architectures = ["arm64"]
   timeout       = 300
   memory_size   = 4096
@@ -144,7 +144,7 @@ resource "aws_lambda_function" "snow_on_road" {
     }
   }
 
-  depends_on = [aws_ecr_repository.snow_on_road]
+  depends_on = [aws_ecr_repository.road_analysis]
 }
 
 resource "aws_cloudwatch_log_group" "lambda_logs" {
@@ -158,21 +158,21 @@ resource "aws_cloudwatch_log_group" "lambda_logs" {
 # Note: AWS EventBridge uses UTC, so 9am PST = 5pm UTC
 resource "aws_cloudwatch_event_rule" "daily_schedule" {
   name                = "${var.project_name}-daily-9am-pst"
-  description         = "Trigger snow-on-road check at 9am PST daily"
+  description         = "Trigger road-analysis check at 9am PST daily"
   schedule_expression = "cron(0 17 * * ? *)"
 }
 
 resource "aws_cloudwatch_event_target" "lambda_target" {
   rule      = aws_cloudwatch_event_rule.daily_schedule.name
-  target_id = "snow-on-road-daily"
-  arn       = aws_lambda_function.snow_on_road.arn
+  target_id = "road-analysis-daily"
+  arn       = aws_lambda_function.road_analysis.arn
   input     = jsonencode({ action = "email" })
 }
 
 resource "aws_lambda_permission" "allow_eventbridge_daily" {
   statement_id  = "AllowEventBridgeInvokeDaily"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.snow_on_road.function_name
+  function_name = aws_lambda_function.road_analysis.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.daily_schedule.arn
 }
@@ -186,15 +186,15 @@ resource "aws_cloudwatch_event_rule" "hourly_schedule" {
 
 resource "aws_cloudwatch_event_target" "hourly_target" {
   rule      = aws_cloudwatch_event_rule.hourly_schedule.name
-  target_id = "snow-on-road-hourly"
-  arn       = aws_lambda_function.snow_on_road.arn
+  target_id = "road-analysis-hourly"
+  arn       = aws_lambda_function.road_analysis.arn
   input     = jsonencode({ action = "html_only" })
 }
 
 resource "aws_lambda_permission" "allow_eventbridge_hourly" {
   statement_id  = "AllowEventBridgeInvokeHourly"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.snow_on_road.function_name
+  function_name = aws_lambda_function.road_analysis.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.hourly_schedule.arn
 }

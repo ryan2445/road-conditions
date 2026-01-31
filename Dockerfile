@@ -11,7 +11,7 @@ COPY pyproject.toml ${LAMBDA_TASK_ROOT}/
 RUN uv pip install --system --no-cache -r ${LAMBDA_TASK_ROOT}/pyproject.toml
 
 # Copy application code
-COPY snow_checker.py ${LAMBDA_TASK_ROOT}/
+COPY road_analysis.py ${LAMBDA_TASK_ROOT}/
 COPY main.py ${LAMBDA_TASK_ROOT}/
 COPY cameras.json ${LAMBDA_TASK_ROOT}/
 COPY lambda_handler.py ${LAMBDA_TASK_ROOT}/

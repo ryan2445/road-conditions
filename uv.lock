@@ -517,7 +517,7 @@ wheels = [
 ]
 
 [[package]]
-name = "snow-on-road"
+name = "road-analysis"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

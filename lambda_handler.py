@@ -7,7 +7,7 @@ from typing import Any
 
 import boto3
 
-from snow_checker import (
+from road_analysis import (
     CameraResult,
     check_cameras,
     generate_email,
@@ -26,7 +26,7 @@ def send_ses_email(results: list[CameraResult]) -> None:
     ses = boto3.client("ses", region_name=AWS_REGION)
 
     msg = MIMEMultipart("related")
-    msg["Subject"] = "Snow on Road Report"
+    msg["Subject"] = "Road Analysis"
     msg["From"] = SES_SENDER
     msg["To"] = SES_RECIPIENT
 

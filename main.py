@@ -1,6 +1,6 @@
 import argparse
 
-from snow_checker import (
+from road_analysis import (
     check_cameras,
     generate_web_page,
     format_report,

@@ -4,14 +4,14 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
-from typing import Any, NotRequired, TypedDict
+from typing import NotRequired, TypedDict
 
 import clip
 import jinja2
-import numpy as np
 import requests
 import torch
 from PIL import Image
+from clip.model import CLIP
 
 
 def _b64encode(data: bytes) -> str:
@@ -43,38 +43,16 @@ class CameraResult(TypedDict):
     image_bytes: NotRequired[bytes]
 
 
-POSITIVE_PROMPTS: list[str] = [
-    "a clear road surface with snow piled on the sides",
-    "a road with asphalt pavement",
-    "a plowed road",
-    "a dry road surface",
-]
-
-NEGATIVE_PROMPTS: list[str] = [
-    "a road covered in snow",
-    "snow on the road surface",
-    "an icy slippery road",
-    "an unplowed snowy road",
-]
-
-ALL_PROMPTS: list[str] = POSITIVE_PROMPTS + NEGATIVE_PROMPTS
+ALL_PROMPTS: list[str] = ["a dry road", "a wet road"]
 
 
 def load_model() -> (
-    tuple[Any, Callable[[Image.Image], torch.Tensor], torch.Tensor, str]
+    tuple[CLIP, Callable[[Image.Image], torch.Tensor], torch.Tensor, str]
 ):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, preprocess = clip.load("ViT-B/32", device=device, download_root="/tmp")
     text = clip.tokenize(ALL_PROMPTS).to(device)
     return model, preprocess, text, device
-
-
-def compute_clearness_score(logits: np.ndarray) -> float:
-    """Compute a 0-1 clearness score from CLIP logits using contrastive scoring."""
-    positive_mean = logits[: len(POSITIVE_PROMPTS)].mean()
-    negative_mean = logits[len(POSITIVE_PROMPTS) :].mean()
-    difference = positive_mean - negative_mean
-    return float(1.0 / (1.0 + np.exp(-difference * 0.5)))
 
 
 def load_cameras(path: str = "cameras.json") -> dict[str, list[CameraConfig]]:
@@ -83,7 +61,7 @@ def load_cameras(path: str = "cameras.json") -> dict[str, list[CameraConfig]]:
 
 
 def check_cameras(
-    model: Any,
+    model: CLIP,
     preprocess: Callable[[Image.Image], torch.Tensor],
     text: torch.Tensor,
     device: str,
@@ -115,16 +93,14 @@ def check_cameras(
 
         with torch.no_grad():
             logits_per_image, _ = model(image_tensor, text)
-            logits = logits_per_image.cpu().numpy()[0]
-
-        clearness_score = compute_clearness_score(logits)
+            logits = logits_per_image.softmax(dim=-1).cpu().numpy()[0]
 
         results.append(
             {
                 "id": camera_id,
                 "name": camera_name,
                 "error": False,
-                "clearness_score": clearness_score,
+                "clearness_score": float(logits[0]),
                 "image_bytes": image_bytes,
             }
         )
