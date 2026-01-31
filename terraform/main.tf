@@ -23,6 +23,27 @@ resource "aws_ecr_repository" "snow_on_road" {
   }
 }
 
+resource "aws_ecr_lifecycle_policy" "snow_on_road" {
+  repository = aws_ecr_repository.snow_on_road.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 3 images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 3
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role" "lambda_role" {
   name = "${var.project_name}-lambda-role"
 
@@ -128,7 +149,7 @@ resource "aws_lambda_function" "snow_on_road" {
 
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name              = "/aws/lambda/${var.project_name}"
-  retention_in_days = 14
+  retention_in_days = 7
 }
 
 # EventBridge Rule - 9am PST (5pm UTC, or 4pm UTC during daylight saving)
