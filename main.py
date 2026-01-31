@@ -1,7 +1,7 @@
 from snow_checker import load_model, load_cameras, check_cameras, format_report
 
 
-def main():
+def main() -> None:
     model, preprocess, text, device = load_model()
     cameras = load_cameras()
     results = check_cameras(model, preprocess, text, device, cameras["mt_rose"])

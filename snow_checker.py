@@ -1,27 +1,52 @@
 import json
+from collections.abc import Callable
+from io import BytesIO
+from typing import Any, NotRequired, TypedDict
+
+import clip
 import requests
 import torch
-import clip
 from PIL import Image
-from io import BytesIO
-
-LABELS = ["a plowed road", "a clear road", "a dry road"]
 
 
-def load_model():
+class CameraConfig(TypedDict):
+    id: str
+    name: str
+
+
+class CameraResult(TypedDict):
+    id: str
+    name: str
+    error: bool
+    probabilities: dict[str, float] | None
+    image_bytes: NotRequired[bytes]
+
+
+LABELS: list[str] = ["a plowed road", "a clear road", "a dry road"]
+
+
+def load_model() -> (
+    tuple[Any, Callable[[Image.Image], torch.Tensor], torch.Tensor, str]
+):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, preprocess = clip.load("ViT-B/32", device=device, download_root="/tmp")
     text = clip.tokenize(LABELS).to(device)
     return model, preprocess, text, device
 
 
-def load_cameras(path="cameras.json"):
+def load_cameras(path: str = "cameras.json") -> dict[str, list[CameraConfig]]:
     with open(path) as f:
-        return json.load(f)
+        return json.load(f)  # type: ignore[no-any-return]
 
 
-def check_cameras(model, preprocess, text, device, cameras):
-    results = []
+def check_cameras(
+    model: Any,
+    preprocess: Callable[[Image.Image], torch.Tensor],
+    text: torch.Tensor,
+    device: str,
+    cameras: list[CameraConfig],
+) -> list[CameraResult]:
+    results: list[CameraResult] = []
 
     for camera in cameras:
         camera_id = camera["id"]
@@ -64,10 +89,10 @@ def check_cameras(model, preprocess, text, device, cameras):
     return results
 
 
-def format_report(results):
+def format_report(results: list[CameraResult]) -> str:
     label_widths = [max(len(label), 8) + 2 for label in LABELS]
 
-    lines = []
+    lines: list[str] = []
     header = f"{'ID':<8} {'Name':<30} " + " ".join(
         f"{label:<{w}}" for label, w in zip(LABELS, label_widths)
     )
@@ -80,6 +105,7 @@ def format_report(results):
             lines.append(f"{result['id']:<8} {result['name']:<30} {error_cols}")
         else:
             probs = result["probabilities"]
+            assert probs is not None
             prob_cols = " ".join(
                 f"{probs[label]:.2%}".ljust(w) for label, w in zip(LABELS, label_widths)
             )
@@ -88,9 +114,9 @@ def format_report(results):
     return "\n".join(lines)
 
 
-def format_html_report(results):
+def format_html_report(results: list[CameraResult]) -> str:
     """Format report as HTML with embedded images for email."""
-    html_parts = [
+    html_parts: list[str] = [
         "<html><body>",
         "<h2>Snow on Road Report</h2>",
         "<table border='1' cellpadding='8' cellspacing='0'>",
@@ -112,8 +138,10 @@ def format_html_report(results):
         else:
             cid = f"camera_{result['id']}"
             html_parts.append(f"<td><img src='cid:{cid}' width='320'></td>")
+            probs = result["probabilities"]
+            assert probs is not None
             for label in LABELS:
-                prob = result["probabilities"][label]
+                prob = probs[label]
                 html_parts.append(f"<td>{prob:.2%}</td>")
 
         html_parts.append("</tr>")
