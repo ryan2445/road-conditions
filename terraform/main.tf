@@ -12,7 +12,6 @@ provider "aws" {
 }
 
 data "aws_caller_identity" "current" {}
-data "aws_region" "current" {}
 
 resource "aws_ecr_repository" "snow_on_road" {
   name                 = var.project_name
@@ -46,8 +45,8 @@ resource "aws_iam_role_policy_attachment" "lambda_basic" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-resource "aws_iam_role_policy" "lambda_ses" {
-  name = "${var.project_name}-ses-policy"
+resource "aws_iam_role_policy" "lambda_permissions" {
+  name = "${var.project_name}-lambda-policy"
   role = aws_iam_role.lambda_role.id
 
   policy = jsonencode({
@@ -57,6 +56,11 @@ resource "aws_iam_role_policy" "lambda_ses" {
         Effect   = "Allow"
         Action   = ["ses:SendEmail", "ses:SendRawEmail"]
         Resource = "*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:PutObject"]
+        Resource = "${aws_s3_bucket.reports.arn}/*"
       }
     ]
   })
@@ -101,22 +105,6 @@ resource "aws_s3_bucket_policy" "reports" {
   })
 
   depends_on = [aws_s3_bucket_public_access_block.reports]
-}
-
-resource "aws_iam_role_policy" "lambda_s3" {
-  name = "${var.project_name}-s3-policy"
-  role = aws_iam_role.lambda_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect   = "Allow"
-        Action   = ["s3:PutObject"]
-        Resource = "${aws_s3_bucket.reports.arn}/*"
-      }
-    ]
-  })
 }
 
 resource "aws_lambda_function" "snow_on_road" {
