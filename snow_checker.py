@@ -114,7 +114,7 @@ def format_report(results: list[CameraResult]) -> str:
     return "\n".join(lines)
 
 
-def format_html_report(results: list[CameraResult]) -> str:
+def generate_email(results: list[CameraResult]) -> str:
     """Format report as HTML with embedded images for email."""
     html_parts: list[str] = [
         "<html><body>",
@@ -147,4 +147,71 @@ def format_html_report(results: list[CameraResult]) -> str:
         html_parts.append("</tr>")
 
     html_parts.append("</table></body></html>")
+    return "".join(html_parts)
+
+
+def generate_web_page(results: list[CameraResult]) -> str:
+    import base64
+    from datetime import datetime, timezone
+
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+    html_parts: list[str] = [
+        "<!DOCTYPE html>",
+        "<html>",
+        "<head>",
+        "<meta charset='utf-8'>",
+        "<meta name='viewport' content='width=device-width, initial-scale=1'>",
+        "<title>Snow on Road Report</title>",
+        "<style>",
+        "body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; background: #f5f5f5; }",
+        "h1 { color: #333; }",
+        ".timestamp { color: #666; margin-bottom: 20px; }",
+        "table { border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }",
+        "th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }",
+        "th { background: #4a90d9; color: white; }",
+        "tr:nth-child(even) { background: #f9f9f9; }",
+        "img { max-width: 320px; height: auto; }",
+        ".high-prob { background: #c8e6c9 !important; font-weight: bold; }",
+        ".error { color: #d32f2f; }",
+        "</style>",
+        "</head>",
+        "<body>",
+        "<h1>Snow on Road Report</h1>",
+        f"<p class='timestamp'>Generated: {timestamp}</p>",
+        "<table>",
+        "<tr><th>ID</th><th>Name</th><th>Image</th>",
+    ]
+    for label in LABELS:
+        html_parts.append(f"<th>{label}</th>")
+    html_parts.append("</tr>")
+
+    for result in results:
+        html_parts.append("<tr>")
+        html_parts.append(f"<td>{result['id']}</td>")
+        html_parts.append(f"<td>{result['name']}</td>")
+
+        if result["error"]:
+            html_parts.append("<td class='error'>Error</td>")
+            for _ in LABELS:
+                html_parts.append("<td class='error'>Error</td>")
+        else:
+            image_bytes = result.get("image_bytes")
+            if image_bytes:
+                b64 = base64.b64encode(image_bytes).decode("utf-8")
+                html_parts.append(f"<td><img src='data:image/jpeg;base64,{b64}'></td>")
+            else:
+                html_parts.append("<td>No image</td>")
+
+            probs = result["probabilities"]
+            assert probs is not None
+            for label in LABELS:
+                prob = probs[label]
+                cell_class = "high-prob" if prob >= 0.7 else ""
+                html_parts.append(f"<td class='{cell_class}'>{prob:.2%}</td>")
+
+        html_parts.append("</tr>")
+
+    html_parts.append("</table>")
+    html_parts.append("</body></html>")
     return "".join(html_parts)

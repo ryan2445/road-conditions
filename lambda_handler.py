@@ -10,7 +10,8 @@ import boto3
 from snow_checker import (
     CameraResult,
     check_cameras,
-    format_html_report,
+    generate_email,
+    generate_web_page,
     format_report,
     load_cameras,
     load_model,
@@ -29,7 +30,7 @@ def send_ses_email(results: list[CameraResult]) -> None:
     msg["From"] = SES_SENDER
     msg["To"] = SES_RECIPIENT
 
-    html_body = format_html_report(results)
+    html_body = generate_email(results)
     msg.attach(MIMEText(html_body, "html"))
 
     for result in results:
@@ -49,13 +50,37 @@ def send_ses_email(results: list[CameraResult]) -> None:
     )
 
 
-def handler(_event: Any, _context: Any) -> dict[str, Any]:
+def upload_html_to_s3(results: list[CameraResult]) -> str | None:
+    bucket = os.environ.get("S3_BUCKET")
+    if not bucket:
+        return None
+
+    s3 = boto3.client("s3", region_name=AWS_REGION)
+    html = generate_web_page(results)
+
+    s3.put_object(
+        Bucket=bucket,
+        Key="index.html",
+        Body=html.encode("utf-8"),
+        ContentType="text/html",
+    )
+
+    return f"http://{bucket}.s3-website-{AWS_REGION}.amazonaws.com"
+
+
+def handler(event: Any, _context: Any) -> dict[str, Any]:
     model, preprocess, text, device = load_model()
     cameras = load_cameras()
     results = check_cameras(model, preprocess, text, device, cameras["mt_rose"])
 
+    s3_url = None
     if os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
-        send_ses_email(results)
+        # Always upload HTML to S3
+        s3_url = upload_html_to_s3(results)
+
+        # Only send email if action is "email" (9am trigger)
+        if event.get("action") == "email":
+            send_ses_email(results)
     else:
         print(format_report(results))
 
@@ -63,4 +88,4 @@ def handler(_event: Any, _context: Any) -> dict[str, Any]:
     results_json: list[dict[str, Any]] = [
         {k: v for k, v in r.items() if k != "image_bytes"} for r in results
     ]
-    return {"statusCode": 200, "body": json.dumps(results_json)}
+    return {"statusCode": 200, "body": json.dumps(results_json), "s3_url": s3_url}

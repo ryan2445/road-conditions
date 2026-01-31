@@ -62,6 +62,63 @@ resource "aws_iam_role_policy" "lambda_ses" {
   })
 }
 
+# S3 bucket for HTML reports
+resource "aws_s3_bucket" "reports" {
+  bucket = "${var.project_name}-reports-${data.aws_caller_identity.current.account_id}"
+}
+
+resource "aws_s3_bucket_website_configuration" "reports" {
+  bucket = aws_s3_bucket.reports.id
+
+  index_document {
+    suffix = "index.html"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "reports" {
+  bucket = aws_s3_bucket.reports.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+resource "aws_s3_bucket_policy" "reports" {
+  bucket = aws_s3_bucket.reports.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "PublicReadGetObject"
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.reports.arn}/*"
+      }
+    ]
+  })
+
+  depends_on = [aws_s3_bucket_public_access_block.reports]
+}
+
+resource "aws_iam_role_policy" "lambda_s3" {
+  name = "${var.project_name}-s3-policy"
+  role = aws_iam_role.lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:PutObject"]
+        Resource = "${aws_s3_bucket.reports.arn}/*"
+      }
+    ]
+  })
+}
+
 resource "aws_lambda_function" "snow_on_road" {
   function_name = var.project_name
   role          = aws_iam_role.lambda_role.arn
@@ -74,6 +131,7 @@ resource "aws_lambda_function" "snow_on_road" {
   environment {
     variables = {
       PYTHONUNBUFFERED = "1"
+      S3_BUCKET        = aws_s3_bucket.reports.id
     }
   }
 
@@ -97,14 +155,37 @@ resource "aws_cloudwatch_event_rule" "daily_schedule" {
 
 resource "aws_cloudwatch_event_target" "lambda_target" {
   rule      = aws_cloudwatch_event_rule.daily_schedule.name
-  target_id = "snow-on-road-lambda"
+  target_id = "snow-on-road-daily"
   arn       = aws_lambda_function.snow_on_road.arn
+  input     = jsonencode({ action = "email" })
 }
 
-resource "aws_lambda_permission" "allow_eventbridge" {
-  statement_id  = "AllowEventBridgeInvoke"
+resource "aws_lambda_permission" "allow_eventbridge_daily" {
+  statement_id  = "AllowEventBridgeInvokeDaily"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.snow_on_road.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.daily_schedule.arn
+}
+
+# Hourly schedule to update HTML report
+resource "aws_cloudwatch_event_rule" "hourly_schedule" {
+  name                = "${var.project_name}-hourly"
+  description         = "Update HTML report hourly"
+  schedule_expression = "rate(1 hour)"
+}
+
+resource "aws_cloudwatch_event_target" "hourly_target" {
+  rule      = aws_cloudwatch_event_rule.hourly_schedule.name
+  target_id = "snow-on-road-hourly"
+  arn       = aws_lambda_function.snow_on_road.arn
+  input     = jsonencode({ action = "html_only" })
+}
+
+resource "aws_lambda_permission" "allow_eventbridge_hourly" {
+  statement_id  = "AllowEventBridgeInvokeHourly"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.snow_on_road.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.hourly_schedule.arn
 }

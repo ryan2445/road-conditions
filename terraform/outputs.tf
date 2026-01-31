@@ -22,3 +22,8 @@ output "schedule_rule_arn" {
   description = "ARN of the EventBridge schedule rule"
   value       = aws_cloudwatch_event_rule.daily_schedule.arn
 }
+
+output "website_url" {
+  description = "S3 website URL for the snow report"
+  value       = aws_s3_bucket_website_configuration.reports.website_endpoint
+}
