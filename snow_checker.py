@@ -41,7 +41,8 @@ def check_cameras(model, preprocess, text, device, cameras):
             )
             continue
 
-        image = Image.open(BytesIO(response.content))
+        image_bytes = response.content
+        image = Image.open(BytesIO(image_bytes))
         image_tensor = preprocess(image).unsqueeze(0).to(device)
 
         with torch.no_grad():
@@ -56,6 +57,7 @@ def check_cameras(model, preprocess, text, device, cameras):
                 "probabilities": {
                     label: float(prob) for label, prob in zip(LABELS, probs)
                 },
+                "image_bytes": image_bytes,
             }
         )
 
@@ -84,3 +86,37 @@ def format_report(results):
             lines.append(f"{result['id']:<8} {result['name']:<30} {prob_cols}")
 
     return "\n".join(lines)
+
+
+def format_html_report(results):
+    """Format report as HTML with embedded images for email."""
+    html_parts = [
+        "<html><body>",
+        "<h2>Snow on Road Report</h2>",
+        "<table border='1' cellpadding='8' cellspacing='0'>",
+        "<tr><th>ID</th><th>Name</th><th>Image</th>",
+    ]
+    for label in LABELS:
+        html_parts.append(f"<th>{label}</th>")
+    html_parts.append("</tr>")
+
+    for result in results:
+        html_parts.append("<tr>")
+        html_parts.append(f"<td>{result['id']}</td>")
+        html_parts.append(f"<td>{result['name']}</td>")
+
+        if result["error"]:
+            html_parts.append("<td>Error</td>")
+            for _ in LABELS:
+                html_parts.append("<td>Error</td>")
+        else:
+            cid = f"camera_{result['id']}"
+            html_parts.append(f"<td><img src='cid:{cid}' width='320'></td>")
+            for label in LABELS:
+                prob = result["probabilities"][label]
+                html_parts.append(f"<td>{prob:.2%}</td>")
+
+        html_parts.append("</tr>")
+
+    html_parts.append("</table></body></html>")
+    return "".join(html_parts)
