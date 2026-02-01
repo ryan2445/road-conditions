@@ -1,11 +1,14 @@
 import base64
 import json
+import re
 from collections.abc import Callable
 from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
 from typing import NotRequired, TypedDict
+from urllib.parse import urljoin
 
+import av
 import clip
 import jinja2
 import requests
@@ -33,6 +36,7 @@ def get_template(name: str) -> jinja2.Template:
 class CameraConfig(TypedDict):
     id: str
     name: str
+    stream: NotRequired[str]
 
 
 class CameraResult(TypedDict):
@@ -43,7 +47,7 @@ class CameraResult(TypedDict):
     image_bytes: NotRequired[bytes]
 
 
-ALL_PROMPTS: list[str] = ["a dry road", "a wet road"]
+ALL_PROMPTS: list[str] = ["dry road", "wet snowy road"]
 
 
 def load_model() -> (
@@ -60,6 +64,45 @@ def load_cameras(path: str = "cameras.json") -> dict[str, list[CameraConfig]]:
         return json.load(f)  # type: ignore[no-any-return]
 
 
+def fetch_hls_frame(master_playlist_url: str) -> bytes:
+    """Fetch a single frame from an HLS stream as JPEG bytes."""
+    # 1. Fetch master playlist and find chunklist URL
+    master_response = requests.get(master_playlist_url)
+    master_response.raise_for_status()
+
+    chunklist_match = re.search(
+        r"^(chunklist[^\s]+\.m3u8)", master_response.text, re.MULTILINE
+    )
+    if not chunklist_match:
+        raise ValueError("Could not find chunklist in master playlist")
+    chunklist_url = urljoin(master_playlist_url, chunklist_match.group(1))
+
+    # 2. Fetch chunklist and find first .ts segment
+    chunklist_response = requests.get(chunklist_url)
+    chunklist_response.raise_for_status()
+
+    segment_match = re.search(
+        r"^(media[^\s]+\.ts)", chunklist_response.text, re.MULTILINE
+    )
+    if not segment_match:
+        raise ValueError("Could not find media segment in chunklist")
+    segment_url = urljoin(chunklist_url, segment_match.group(1))
+
+    # 3. Fetch .ts segment and decode first frame with PyAV
+    segment_response = requests.get(segment_url)
+    segment_response.raise_for_status()
+
+    output = BytesIO()
+    container = av.open(BytesIO(segment_response.content), format="mpegts")
+    for frame in container.decode(video=0):  # type: ignore
+        image = frame.to_image()  # type: Image.Image
+        image.save(output, format="JPEG", quality=85)
+        break
+    container.close()
+
+    return output.getvalue()
+
+
 def check_cameras(
     model: CLIP,
     preprocess: Callable[[Image.Image], torch.Tensor],
@@ -72,11 +115,9 @@ def check_cameras(
     for camera in cameras:
         camera_id = camera["id"]
         camera_name = camera["name"]
+        stream_url = camera.get("stream")
 
-        url = f"https://nvroads.com/map/Cctv/{camera_id}"
-        response = requests.get(url)
-
-        if response.status_code != 200:
+        def appendErrored():
             results.append(
                 {
                     "id": camera_id,
@@ -85,15 +126,44 @@ def check_cameras(
                     "clearness_score": None,
                 }
             )
+
+        try:
+            if stream_url:
+                image_bytes = fetch_hls_frame(stream_url)
+            else:
+                # Fallback to CCTV endpoint
+                url = f"https://nvroads.com/map/Cctv/{camera_id}"
+                response = requests.get(url)
+                if response.status_code != 200:
+                    print(
+                        f"Error fetching image for camera {camera_id} ({camera_name}): HTTP {response.status_code}"
+                    )
+                    appendErrored()
+                    continue
+                image_bytes = response.content
+        except Exception as e:
+            print(f"Error fetching image for camera {camera_id} ({camera_name}): {e}")
+            appendErrored()
             continue
 
-        image_bytes = response.content
-        image = Image.open(BytesIO(image_bytes))
-        image_tensor = preprocess(image).unsqueeze(0).to(device)
+        try:
+            image = Image.open(BytesIO(image_bytes))
+            image_tensor = preprocess(image).unsqueeze(0).to(device)
+        except Exception as e:
+            print(f"Error processing image for camera {camera_id} ({camera_name}): {e}")
+            appendErrored()
+            continue
 
-        with torch.no_grad():
-            logits_per_image, _ = model(image_tensor, text)
-            logits = logits_per_image.softmax(dim=-1).cpu().numpy()[0]
+        try:
+            with torch.no_grad():
+                logits_per_image, _ = model(image_tensor, text)
+                logits = logits_per_image.softmax(dim=-1).cpu().numpy()[0]
+        except Exception as e:
+            print(
+                f"Error running model inference for camera {camera_id} ({camera_name}): {e}"
+            )
+            appendErrored()
+            continue
 
         results.append(
             {

@@ -2,39 +2,48 @@
   "mt_rose": [
     {
       "id": "5008",
-      "name": "SR431 @ Thomas Creek"
+      "name": "SR431 @ Thomas Creek",
+      "stream": "https://d2wse2.its.nv.gov/renoxcd02/797495db-db1f-4f3f-babd-645e58b709ed_hspflirxcd02_public.stream/playlist.m3u8"
     },
     {
       "id": "5040",
-      "name": "SR-431 @ Bullseye"
+      "name": "SR-431 @ Bullseye",
+      "stream": "https://d2wse2.its.nv.gov/renoxcd02/6c4e3db1-7f04-4098-b195-352c188e97af_hspflirxcd02_public.stream/playlist.m3u8"
     },
     {
       "id": "5093",
-      "name": "SR-431 @ Mt Rose Ski Area"
+      "name": "SR-431 @ Mt Rose Ski Area",
+      "stream": "https://d2wse2.its.nv.gov/renoxcd02/d7cd62fd-1bdf-4102-91f5-0d94293d549f_hspflirxcd02_public.stream/playlist.m3u8"
     },
     {
       "id": "5039",
-      "name": "SR-431 @ Mt. Rose Dugway"
+      "name": "SR-431 @ Mt. Rose Dugway",
+      "stream": "https://d2wse2.its.nv.gov/renoxcd03/cfb37917-aae5-46ea-ae58-794abc098859_hspflirxcd03_public.stream/playlist.m3u8"
     },
     {
       "id": "5265",
-      "name": "SR431 Mt Rose Summit"
+      "name": "SR431 Mt Rose Summit",
+      "stream": "https://d2wse2.its.nv.gov/renoxcd02/ec6b8c8f-7e43-4af3-a420-e7d91c1014ef_hspflirxcd02_public.stream/playlist.m3u8"
     },
     {
       "id": "5004",
-      "name": "SR431 West Side Meadows"
+      "name": "SR431 West Side Meadows",
+      "stream": "https://d2wse2.its.nv.gov/renoxcd02/94ce9220-7e98-417b-9c9a-5ce303401695_hspflirxcd02_public.stream/playlist.m3u8"
     },
     {
       "id": "5046",
-      "name": "SR431 @ Brake Check Area"
+      "name": "SR431 @ Brake Check Area",
+      "stream": "https://d2wse2.its.nv.gov/renoxcd02/e12a4773-ea80-42cb-a8f0-50117f97510b_hspflirxcd02_public.stream/playlist.m3u8"
     },
     {
       "id": "5266",
-      "name": "SR431 Diamond Peak"
+      "name": "SR431 Diamond Peak",
+      "stream": "https://d2wse2.its.nv.gov/renoxcd03/9c9baad9-db84-471d-aa62-19bb75a45441_hspflirxcd03_public.stream/playlist.m3u8"
     },
     {
       "id": "5627",
-      "name": "SR431 Country Club Dr"
+      "name": "SR431 Country Club Dr",
+      "stream": "https://d2wse2.its.nv.gov/renoxcd03/8680813f-95d1-47c0-bf28-e7d265e1fced_hspflirxcd03_public.stream/playlist.m3u8"
     }
   ]
 }
