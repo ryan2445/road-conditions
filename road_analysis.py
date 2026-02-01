@@ -151,12 +151,7 @@ def check_cameras(
                 # Fallback to CCTV endpoint
                 url = f"https://nvroads.com/map/Cctv/{camera_id}"
                 response = requests.get(url)
-                if response.status_code != 200:
-                    print(
-                        f"Error fetching image for camera {camera_id} ({camera_name}): HTTP {response.status_code}"
-                    )
-                    appendErrored()
-                    continue
+                response.raise_for_status()
                 image_bytes = response.content
         except Exception as e:
             print(f"Error fetching image for camera {camera_id} ({camera_name}): {e}")
@@ -191,11 +186,10 @@ def check_cameras(
                 avg_safe = safe_similarities.mean()
                 avg_unsafe = unsafe_similarities.mean()
 
+                # Scale by CLIP's logit_scale (~100)
+                scores = torch.stack([avg_safe, avg_unsafe]) * 100.0
                 # Apply softmax to get probability
-                scores = torch.stack([avg_safe, avg_unsafe])
-                probs = torch.softmax(
-                    scores * 100.0, dim=0
-                )  # Scale by CLIP's logit_scale (~100)
+                probs = torch.softmax(scores, dim=0)
                 clearness_score = probs[0].cpu().item()
         except Exception as e:
             print(
