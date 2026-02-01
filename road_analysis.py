@@ -47,16 +47,32 @@ class CameraResult(TypedDict):
     image_bytes: NotRequired[bytes]
 
 
-ALL_PROMPTS: list[str] = ["dry road", "wet snowy road"]
+SAFE_PROMPTS: list[str] = [
+    "a photo of a clear dry road",
+    "a photo of a dry highway with good visibility",
+    "a photo of clear driving conditions",
+    "a traffic camera view of a clear road",
+]
+
+UNSAFE_PROMPTS: list[str] = [
+    "a photo of a snow-covered road",
+    "a photo of an icy road",
+    "a photo of a foggy road with low visibility",
+    "a photo of a wet road in heavy rain",
+    "a photo of a flooded road",
+    "a photo of dangerous winter driving conditions",
+    "a photo of poor visibility on a highway",
+]
 
 
 def load_model() -> (
-    tuple[CLIP, Callable[[Image.Image], torch.Tensor], torch.Tensor, str]
+    tuple[CLIP, Callable[[Image.Image], torch.Tensor], torch.Tensor, torch.Tensor, str]
 ):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, preprocess = clip.load("ViT-B/32", device=device, download_root="/tmp")
-    text = clip.tokenize(ALL_PROMPTS).to(device)
-    return model, preprocess, text, device
+    safe_text = clip.tokenize(SAFE_PROMPTS).to(device)
+    unsafe_text = clip.tokenize(UNSAFE_PROMPTS).to(device)
+    return model, preprocess, safe_text, unsafe_text, device
 
 
 def load_cameras(path: str = "cameras.json") -> dict[str, list[CameraConfig]]:
@@ -106,7 +122,8 @@ def fetch_hls_frame(master_playlist_url: str) -> bytes:
 def check_cameras(
     model: CLIP,
     preprocess: Callable[[Image.Image], torch.Tensor],
-    text: torch.Tensor,
+    safe_text: torch.Tensor,
+    unsafe_text: torch.Tensor,
     device: str,
     cameras: list[CameraConfig],
 ) -> list[CameraResult]:
@@ -156,8 +173,30 @@ def check_cameras(
 
         try:
             with torch.no_grad():
-                logits_per_image, _ = model(image_tensor, text)
-                logits = logits_per_image.softmax(dim=-1).cpu().numpy()[0]
+                # Get image features
+                image_features = model.encode_image(image_tensor)
+                image_features /= image_features.norm(dim=-1, keepdim=True)
+
+                # Get text features for both categories
+                safe_features = model.encode_text(safe_text)
+                safe_features /= safe_features.norm(dim=-1, keepdim=True)
+                unsafe_features = model.encode_text(unsafe_text)
+                unsafe_features /= unsafe_features.norm(dim=-1, keepdim=True)
+
+                # Compute similarities (image_features: 1xD, text_features: NxD)
+                safe_similarities = (image_features @ safe_features.T).squeeze(0)
+                unsafe_similarities = (image_features @ unsafe_features.T).squeeze(0)
+
+                # Average within each category
+                avg_safe = safe_similarities.mean()
+                avg_unsafe = unsafe_similarities.mean()
+
+                # Apply softmax to get probability
+                scores = torch.stack([avg_safe, avg_unsafe])
+                probs = torch.softmax(
+                    scores * 100.0, dim=0
+                )  # Scale by CLIP's logit_scale (~100)
+                clearness_score = probs[0].cpu().item()
         except Exception as e:
             print(
                 f"Error running model inference for camera {camera_id} ({camera_name}): {e}"
@@ -170,7 +209,7 @@ def check_cameras(
                 "id": camera_id,
                 "name": camera_name,
                 "error": False,
-                "clearness_score": float(logits[0]),
+                "clearness_score": float(clearness_score),
                 "image_bytes": image_bytes,
             }
         )

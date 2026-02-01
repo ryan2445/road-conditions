@@ -69,9 +69,9 @@ def upload_html_to_s3(results: list[CameraResult]) -> str | None:
 
 
 def handler(event: Any, _context: Any) -> dict[str, Any]:
-    model, preprocess, text, device = load_model()
+    model, preprocess, safe_text, unsafe_text, device = load_model()
     cameras = load_cameras()
-    results = check_cameras(model, preprocess, text, device, cameras["mt_rose"])
+    results = check_cameras(model, preprocess, safe_text, unsafe_text, device, cameras["mt_rose"])
 
     s3_url = None
     if os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
