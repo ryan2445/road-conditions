@@ -524,10 +524,10 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "av", specifier = ">=14.0.0" },
+    { name = "av", specifier = ">=16.1.0" },
     { name = "boto3", specifier = ">=1.42.39" },
     { name = "clip", git = "https://github.com/openai/CLIP.git" },
-    { name = "jinja2", specifier = ">=3.1.0" },
+    { name = "jinja2", specifier = ">=3.1.6" },
     { name = "pillow", specifier = ">=12.1.0" },
     { name = "requests", specifier = ">=2.32.5" },
     { name = "torch", specifier = ">=2.10.0" },
