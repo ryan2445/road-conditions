@@ -4,6 +4,7 @@ from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Any
+from datetime import datetime, timezone
 
 import boto3
 
@@ -69,7 +70,7 @@ def upload_html_to_s3(results: list[CameraResult]) -> str | None:
     return f"http://{bucket}.s3-website-{AWS_REGION}.amazonaws.com"
 
 
-def handler(event: Any, _context: Any) -> dict[str, Any]:
+def handler(_event: Any, _context: Any) -> dict[str, Any]:
     model, preprocess, safe_text, unsafe_text, device = load_model()
     cameras = load_cameras()
     results = check_cameras(
@@ -81,8 +82,9 @@ def handler(event: Any, _context: Any) -> dict[str, Any]:
         # Always upload HTML to S3
         s3_url = upload_html_to_s3(results)
 
-        # Only send email if action is "email" (9am trigger)
-        if event.get("action") == "email":
+        # Only send email if it's 9am PST = 5pm UTC = 17 hour
+        utc_now = datetime.now(timezone.utc)
+        if utc_now.hour == 17:
             send_ses_email(results)
     else:
         print(format_report(results))
