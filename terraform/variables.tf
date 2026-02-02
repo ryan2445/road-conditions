@@ -1,11 +1,14 @@
 variable "aws_region" {
-  description = "AWS region to deploy resources"
-  type        = string
-  default     = "us-west-2"
+  type    = string
+  default = "us-west-2"
 }
 
 variable "project_name" {
-  description = "Name of the project, used for resource naming"
-  type        = string
-  default     = "road-analysis"
+  type    = string
+  default = "road-analysis"
+}
+
+variable "domain_name" {
+  type    = string
+  default = "road-conditions.ryanh.click"
 }
