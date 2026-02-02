@@ -22,7 +22,9 @@ def main() -> None:
 
     model, preprocess, safe_text, unsafe_text, device = load_model()
     cameras = load_cameras()
-    results = check_cameras(model, preprocess, safe_text, unsafe_text, device, cameras["mt_rose"])
+    results = check_cameras(
+        model, preprocess, safe_text, unsafe_text, device, cameras["mt_rose"]
+    )
 
     if args.html:
         html = generate_web_page(results)

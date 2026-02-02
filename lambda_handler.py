@@ -63,6 +63,7 @@ def upload_html_to_s3(results: list[CameraResult]) -> str | None:
         Key="index.html",
         Body=html.encode("utf-8"),
         ContentType="text/html",
+        CacheControl="max-age=3600",
     )
 
     return f"http://{bucket}.s3-website-{AWS_REGION}.amazonaws.com"
@@ -71,7 +72,9 @@ def upload_html_to_s3(results: list[CameraResult]) -> str | None:
 def handler(event: Any, _context: Any) -> dict[str, Any]:
     model, preprocess, safe_text, unsafe_text, device = load_model()
     cameras = load_cameras()
-    results = check_cameras(model, preprocess, safe_text, unsafe_text, device, cameras["mt_rose"])
+    results = check_cameras(
+        model, preprocess, safe_text, unsafe_text, device, cameras["mt_rose"]
+    )
 
     s3_url = None
     if os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
