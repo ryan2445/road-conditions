@@ -9,8 +9,9 @@ resource "aws_lambda_function" "road_analysis" {
 
   environment {
     variables = {
-      PYTHONUNBUFFERED = "1"
-      S3_BUCKET        = aws_s3_bucket.reports.id
+      PYTHONUNBUFFERED           = "1"
+      S3_BUCKET                  = aws_s3_bucket.reports.id
+      CLOUDFRONT_DISTRIBUTION_ID = aws_cloudfront_distribution.reports.id
     }
   }
 }

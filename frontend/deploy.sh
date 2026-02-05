@@ -13,20 +13,6 @@ aws s3 sync dist/ "s3://${BUCKET}/" \
   --exclude "data.json" \
   --exclude "images/*" \
   --delete \
-  --cache-control "public, max-age=3600"
+  --cache-control "public, max-age=0, s-maxage=3600, must-revalidate"
 
-# Get CloudFront distribution ID
-DISTRIBUTION_ID=$(aws cloudfront list-distributions \
-  --query "DistributionList.Items[?Origins.Items[?DomainName=='${BUCKET}.s3.us-west-2.amazonaws.com']].Id | [0]" \
-  --output text)
-
-if [ "$DISTRIBUTION_ID" != "None" ] && [ -n "$DISTRIBUTION_ID" ]; then
-  echo "Invalidating CloudFront distribution ${DISTRIBUTION_ID}..."
-  aws cloudfront create-invalidation \
-    --distribution-id "$DISTRIBUTION_ID" \
-    --paths "/*"
-else
-  echo "Warning: Could not find CloudFront distribution"
-fi
-
-echo "Deploy complete!"
+echo "Frontend deploy complete!"

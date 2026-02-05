@@ -19,7 +19,7 @@ from road_analysis import (
 
 SES_SENDER = "ryanhoffman2445@gmail.com"
 SES_RECIPIENT = "ryanhoffman2445@gmail.com"
-AWS_REGION = "us-west-2"
+AWS_REGION = os.environ.get("AWS_REGION", "us-west-2")
 
 
 def send_ses_email(results: list[CameraResult]) -> None:
@@ -57,6 +57,7 @@ def upload_data_to_s3(results: list[CameraResult]) -> str | None:
         return None
 
     s3 = boto3.client("s3", region_name=AWS_REGION)
+    cloudfront = boto3.client("cloudfront", region_name=AWS_REGION)
     timestamp = datetime.now(timezone.utc).isoformat()
 
     cameras_data = []
@@ -78,7 +79,7 @@ def upload_data_to_s3(results: list[CameraResult]) -> str | None:
                 Key=f"images/{result['id']}.jpg",
                 Body=image_bytes,
                 ContentType="image/jpeg",
-                CacheControl="public, max-age=3600",
+                CacheControl="public, max-age=0, s-maxage=3600, must-revalidate",
             )
 
     data = {
@@ -90,8 +91,21 @@ def upload_data_to_s3(results: list[CameraResult]) -> str | None:
         Key="data.json",
         Body=json.dumps(data).encode("utf-8"),
         ContentType="application/json",
-        CacheControl="public, max-age=3600",
+        CacheControl="public, max-age=0, s-maxage=3600, must-revalidate",
     )
+
+    distribution_id = os.environ.get("CLOUDFRONT_DISTRIBUTION_ID")
+    if distribution_id:
+        cloudfront.create_invalidation(
+            DistributionId=distribution_id,
+            InvalidationBatch={
+                "Paths": {
+                    "Quantity": 1,
+                    "Items": ["/*"],
+                },
+                "CallerReference": timestamp,
+            },
+        )
 
     return f"http://{bucket}.s3-website-{AWS_REGION}.amazonaws.com"
 
