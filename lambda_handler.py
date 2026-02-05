@@ -64,7 +64,7 @@ def upload_html_to_s3(results: list[CameraResult]) -> str | None:
         Key="index.html",
         Body=html.encode("utf-8"),
         ContentType="text/html",
-        CacheControl="max-age=3600",
+        CacheControl="max-age=1",
     )
 
     return f"http://{bucket}.s3-website-{AWS_REGION}.amazonaws.com"
