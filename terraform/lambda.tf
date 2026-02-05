@@ -59,6 +59,11 @@ resource "aws_iam_role_policy" "lambda_permissions" {
         Effect   = "Allow"
         Action   = ["s3:PutObject"]
         Resource = "${aws_s3_bucket.reports.arn}/*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["cloudfront:CreateInvalidation"]
+        Resource = "${aws_cloudfront_distribution.reports.arn}"
       }
     ]
   })
