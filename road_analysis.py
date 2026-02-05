@@ -232,10 +232,3 @@ def generate_email(results: list[CameraResult]) -> str:
     """Format report as HTML with embedded images for email."""
     template = get_template("email.html.jinja")
     return template.render(results=results)
-
-
-def generate_web_page(results: list[CameraResult]) -> str:
-    """Format report as standalone HTML page with base64 images."""
-    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    template = get_template("web_page.html.jinja")
-    return template.render(results=results, timestamp=timestamp)

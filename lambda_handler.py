@@ -12,7 +12,6 @@ from road_analysis import (
     CameraResult,
     check_cameras,
     generate_email,
-    generate_web_page,
     format_report,
     load_cameras,
     load_model,
@@ -51,20 +50,47 @@ def send_ses_email(results: list[CameraResult]) -> None:
     )
 
 
-def upload_html_to_s3(results: list[CameraResult]) -> str | None:
+def upload_data_to_s3(results: list[CameraResult]) -> str | None:
+    """Upload JSON data and images to S3 for the Svelte frontend."""
     bucket = os.environ.get("S3_BUCKET")
     if not bucket:
         return None
 
     s3 = boto3.client("s3", region_name=AWS_REGION)
-    html = generate_web_page(results)
+    timestamp = datetime.now(timezone.utc).isoformat()
 
+    cameras_data = []
+    for result in results:
+        camera_data = {
+            "id": result["id"],
+            "name": result["name"],
+            "error": result["error"],
+            "clearness_score": result.get("clearness_score"),
+            "image_url": f"images/{result['id']}.jpg" if not result["error"] else None,
+        }
+        cameras_data.append(camera_data)
+
+        # Upload image if available
+        image_bytes = result.get("image_bytes")
+        if not result["error"] and image_bytes:
+            s3.put_object(
+                Bucket=bucket,
+                Key=f"images/{result['id']}.jpg",
+                Body=image_bytes,
+                ContentType="image/jpeg",
+                CacheControl="max-age=3600",
+            )
+
+    data = {
+        "timestamp": timestamp,
+        "cameras": cameras_data,
+    }
     s3.put_object(
         Bucket=bucket,
-        Key="index.html",
-        Body=html.encode("utf-8"),
-        ContentType="text/html",
-        CacheControl="max-age=1",
+        Key="data.json",
+        Body=json.dumps(data).encode("utf-8"),
+        ContentType="application/json",
+        CacheControl="max-age=3600",
     )
 
     return f"http://{bucket}.s3-website-{AWS_REGION}.amazonaws.com"
@@ -79,8 +105,8 @@ def handler(_event: Any, _context: Any) -> dict[str, Any]:
 
     s3_url = None
     if os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
-        # Always upload HTML to S3
-        s3_url = upload_html_to_s3(results)
+        # Upload data.json and images for Svelte frontend
+        s3_url = upload_data_to_s3(results)
 
         # Only send email if it's 9am PST = 5pm UTC = 17 hour
         utc_now = datetime.now(timezone.utc)
