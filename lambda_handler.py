@@ -78,7 +78,7 @@ def upload_data_to_s3(results: list[CameraResult]) -> str | None:
                 Key=f"images/{result['id']}.jpg",
                 Body=image_bytes,
                 ContentType="image/jpeg",
-                CacheControl="max-age=3600",
+                CacheControl="public, max-age=3600",
             )
 
     data = {
@@ -90,7 +90,7 @@ def upload_data_to_s3(results: list[CameraResult]) -> str | None:
         Key="data.json",
         Body=json.dumps(data).encode("utf-8"),
         ContentType="application/json",
-        CacheControl="max-age=3600",
+        CacheControl="public, max-age=3600",
     )
 
     return f"http://{bucket}.s3-website-{AWS_REGION}.amazonaws.com"

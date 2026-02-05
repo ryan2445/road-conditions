@@ -8,11 +8,12 @@ npm run build
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 BUCKET="road-analysis-reports-${ACCOUNT_ID}"
 
-# Sync built assets to S3, excluding data files that Lambda manages
+# Sync built assets to S3, excluding data files that Lambda manages, and set Cache-Control metadata
 aws s3 sync dist/ "s3://${BUCKET}/" \
   --exclude "data.json" \
   --exclude "images/*" \
-  --delete
+  --delete \
+  --cache-control "public, max-age=3600"
 
 # Get CloudFront distribution ID
 DISTRIBUTION_ID=$(aws cloudfront list-distributions \
@@ -27,9 +28,5 @@ if [ "$DISTRIBUTION_ID" != "None" ] && [ -n "$DISTRIBUTION_ID" ]; then
 else
   echo "Warning: Could not find CloudFront distribution"
 fi
-
-# Invoke lambda to update data
-echo "Invoking Lambda to refresh data..."
-aws lambda invoke --function-name road-analysis /dev/null
 
 echo "Deploy complete!"
