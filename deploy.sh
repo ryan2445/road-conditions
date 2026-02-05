@@ -11,3 +11,5 @@ docker push 079958958349.dkr.ecr.us-west-2.amazonaws.com/road-analysis:latest
 
 aws lambda update-function-code --function-name road-analysis --image-uri 079958958349.dkr.ecr.us-west-2.amazonaws.com/road-analysis:latest
 
+# Deploy frontend and run lambda
+cd frontend && ./deploy.sh

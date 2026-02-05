@@ -28,4 +28,8 @@ else
   echo "Warning: Could not find CloudFront distribution"
 fi
 
+# Invoke lambda to update data
+echo "Invoking Lambda to refresh data..."
+aws lambda invoke --function-name road-analysis /dev/null
+
 echo "Deploy complete!"
