@@ -1,8 +1,6 @@
-import base64
 import json
 import re
 from collections.abc import Callable
-from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
 from typing import NotRequired, TypedDict
@@ -15,22 +13,6 @@ import requests
 import torch
 from PIL import Image
 from clip.model import CLIP
-
-
-def _b64encode(data: bytes) -> str:
-    """Jinja2 filter to base64 encode bytes."""
-    return base64.b64encode(data).decode("utf-8")
-
-
-def get_template(name: str) -> jinja2.Template:
-    """Load a Jinja2 template from the templates directory."""
-    template_dir = Path(__file__).parent / "templates"
-    env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(template_dir),
-        autoescape=True,
-    )
-    env.filters["b64encode"] = _b64encode
-    return env.get_template(name)
 
 
 class CameraConfig(TypedDict):
@@ -70,9 +52,16 @@ def load_model() -> (
 ):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, preprocess = clip.load("ViT-B/32", device=device, download_root="/tmp")
-    safe_text = clip.tokenize(SAFE_PROMPTS).to(device)
-    unsafe_text = clip.tokenize(UNSAFE_PROMPTS).to(device)
-    return model, preprocess, safe_text, unsafe_text, device
+
+    with torch.no_grad():
+        safe_text = clip.tokenize(SAFE_PROMPTS).to(device)
+        unsafe_text = clip.tokenize(UNSAFE_PROMPTS).to(device)
+        safe_features = model.encode_text(safe_text)
+        safe_features /= safe_features.norm(dim=-1, keepdim=True)
+        unsafe_features = model.encode_text(unsafe_text)
+        unsafe_features /= unsafe_features.norm(dim=-1, keepdim=True)
+
+    return model, preprocess, safe_features, unsafe_features, device
 
 
 def load_cameras(path: str = "cameras.json") -> dict[str, list[CameraConfig]]:
@@ -122,27 +111,19 @@ def fetch_hls_frame(master_playlist_url: str) -> bytes:
 def check_cameras(
     model: CLIP,
     preprocess: Callable[[Image.Image], torch.Tensor],
-    safe_text: torch.Tensor,
-    unsafe_text: torch.Tensor,
+    safe_features: torch.Tensor,
+    unsafe_features: torch.Tensor,
     device: str,
     cameras: list[CameraConfig],
 ) -> list[CameraResult]:
     results: list[CameraResult] = []
+    preprocessed: list[tuple[int, CameraConfig, bytes, torch.Tensor]] = []
 
-    for camera in cameras:
+    # Phase 1: Fetch and preprocess all images
+    for idx, camera in enumerate(cameras):
         camera_id = camera["id"]
         camera_name = camera["name"]
         stream_url = camera.get("stream")
-
-        def appendErrored():
-            results.append(
-                {
-                    "id": camera_id,
-                    "name": camera_name,
-                    "error": True,
-                    "clearness_score": None,
-                }
-            )
 
         try:
             if stream_url:
@@ -155,7 +136,14 @@ def check_cameras(
                 image_bytes = response.content
         except Exception as e:
             print(f"Error fetching image for camera {camera_id} ({camera_name}): {e}")
-            appendErrored()
+            results.append(
+                {
+                    "id": camera_id,
+                    "name": camera_name,
+                    "error": True,
+                    "clearness_score": None,
+                }
+            )
             continue
 
         try:
@@ -163,50 +151,67 @@ def check_cameras(
             image_tensor = preprocess(image).unsqueeze(0).to(device)
         except Exception as e:
             print(f"Error processing image for camera {camera_id} ({camera_name}): {e}")
-            appendErrored()
-            continue
-
-        try:
-            with torch.no_grad():
-                # Get image features
-                image_features = model.encode_image(image_tensor)
-                image_features /= image_features.norm(dim=-1, keepdim=True)
-
-                # Get text features for both categories
-                safe_features = model.encode_text(safe_text)
-                safe_features /= safe_features.norm(dim=-1, keepdim=True)
-                unsafe_features = model.encode_text(unsafe_text)
-                unsafe_features /= unsafe_features.norm(dim=-1, keepdim=True)
-
-                # Compute similarities (image_features: 1xD, text_features: NxD)
-                safe_similarities = (image_features @ safe_features.T).squeeze(0)
-                unsafe_similarities = (image_features @ unsafe_features.T).squeeze(0)
-
-                # Average within each category
-                avg_safe = safe_similarities.mean()
-                avg_unsafe = unsafe_similarities.mean()
-
-                # Scale by CLIP's logit_scale (~100)
-                scores = torch.stack([avg_safe, avg_unsafe]) * 100.0
-                # Apply softmax to get probability
-                probs = torch.softmax(scores, dim=0)
-                clearness_score = probs[0].cpu().item()
-        except Exception as e:
-            print(
-                f"Error running model inference for camera {camera_id} ({camera_name}): {e}"
+            results.append(
+                {
+                    "id": camera_id,
+                    "name": camera_name,
+                    "error": True,
+                    "clearness_score": None,
+                }
             )
-            appendErrored()
             continue
 
-        results.append(
-            {
-                "id": camera_id,
-                "name": camera_name,
-                "error": False,
-                "clearness_score": float(clearness_score),
-                "image_bytes": image_bytes,
-            }
-        )
+        preprocessed.append((idx, camera, image_bytes, image_tensor))
+
+    # Phase 2: Batch encode all images
+    if preprocessed:
+        batch = torch.cat([t for _, _, _, t in preprocessed], dim=0)
+        with torch.no_grad():
+            image_features = model.encode_image(batch)
+            image_features /= image_features.norm(dim=-1, keepdim=True)
+
+        # Phase 3: Compute scores per image using pre-computed text features
+        for i, (idx, camera, image_bytes, _) in enumerate(preprocessed):
+            try:
+                with torch.no_grad():
+                    # Get this image's features (1xD)
+                    img_feat = image_features[i : i + 1]
+
+                    # Compute similarities (img_feat: 1xD, text_features: NxD)
+                    safe_similarities = (img_feat @ safe_features.T).squeeze(0)
+                    unsafe_similarities = (img_feat @ unsafe_features.T).squeeze(0)
+
+                    # Average within each category
+                    avg_safe = safe_similarities.mean()
+                    avg_unsafe = unsafe_similarities.mean()
+
+                    # Scale by CLIP's logit_scale (~100)
+                    scores = torch.stack([avg_safe, avg_unsafe]) * 100.0
+                    # Apply softmax to get probability
+                    probs = torch.softmax(scores, dim=0)
+                    clearness_score = probs[0].cpu().item()
+
+                results.append(
+                    {
+                        "id": camera["id"],
+                        "name": camera["name"],
+                        "error": False,
+                        "clearness_score": float(clearness_score),
+                        "image_bytes": image_bytes,
+                    }
+                )
+            except Exception as e:
+                print(
+                    f"Error computing score for camera {camera['id']} ({camera['name']}): {e}"
+                )
+                results.append(
+                    {
+                        "id": camera["id"],
+                        "name": camera["name"],
+                        "error": True,
+                        "clearness_score": None,
+                    }
+                )
 
     return results
 
@@ -226,6 +231,16 @@ def format_report(results: list[CameraResult]) -> str:
             lines.append(f"{result['id']:<8} {result['name']:<30} {score:.0%}")
 
     return "\n".join(lines)
+
+
+def get_template(name: str) -> jinja2.Template:
+    """Load a Jinja2 template from the templates directory."""
+    template_dir = Path(__file__).parent / "templates"
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(template_dir),
+        autoescape=True,
+    )
+    return env.get_template(name)
 
 
 def generate_email(results: list[CameraResult]) -> str:

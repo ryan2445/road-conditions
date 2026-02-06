@@ -50,11 +50,11 @@ def send_ses_email(results: list[CameraResult]) -> None:
     )
 
 
-def upload_data_to_s3(results: list[CameraResult]) -> str | None:
+def upload_data_to_s3(results: list[CameraResult]):
     """Upload JSON data and images to S3 for the Svelte frontend."""
     bucket = os.environ.get("S3_BUCKET")
     if not bucket:
-        return None
+        return
 
     s3 = boto3.client("s3", region_name=AWS_REGION)
     cloudfront = boto3.client("cloudfront", region_name=AWS_REGION)
@@ -107,8 +107,6 @@ def upload_data_to_s3(results: list[CameraResult]) -> str | None:
             },
         )
 
-    return f"http://{bucket}.s3-website-{AWS_REGION}.amazonaws.com"
-
 
 def handler(_event: Any, _context: Any) -> dict[str, Any]:
     model, preprocess, safe_text, unsafe_text, device = load_model()
@@ -117,10 +115,9 @@ def handler(_event: Any, _context: Any) -> dict[str, Any]:
         model, preprocess, safe_text, unsafe_text, device, cameras["mt_rose"]
     )
 
-    s3_url = None
     if os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
         # Upload data.json and images for Svelte frontend
-        s3_url = upload_data_to_s3(results)
+        upload_data_to_s3(results)
 
         # Only send email if it's 9am PST = 5pm UTC = 17 hour
         utc_now = datetime.now(timezone.utc)
@@ -133,4 +130,4 @@ def handler(_event: Any, _context: Any) -> dict[str, Any]:
     results_json: list[dict[str, Any]] = [
         {k: v for k, v in r.items() if k != "image_bytes"} for r in results
     ]
-    return {"statusCode": 200, "body": json.dumps(results_json), "s3_url": s3_url}
+    return {"statusCode": 200, "body": json.dumps(results_json)}
