@@ -3,7 +3,6 @@
 __pycache__/
 *.tfstate
 *.tfstate.backup
-index.html
 PLAN.md
 FUTURE.md
 
