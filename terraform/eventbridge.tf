@@ -1,8 +1,9 @@
 # Hourly schedule to update HTML report / send email
 resource "aws_cloudwatch_event_rule" "hourly_schedule" {
-  name                = "${var.project_name}-hourly"
-  description         = "Update HTML report hourly"
-  schedule_expression = "cron(0 * * * ? *)"
+  name        = "${var.project_name}-hourly"
+  description = "Update HTML report hourly (7am-7pm PST)"
+  # PST = UTC-8; so 7am-7pm PST is 15:00-03:00 UTC
+  schedule_expression = "cron(0 15-23,0-3 * * ? *)"
 }
 
 resource "aws_cloudwatch_event_target" "hourly_target" {

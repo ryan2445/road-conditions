@@ -5,13 +5,17 @@ resource "aws_lambda_function" "road_analysis" {
   image_uri     = "${aws_ecr_repository.road_analysis.repository_url}:latest"
   architectures = ["arm64"]
   timeout       = 300
-  memory_size   = 4096
+  memory_size   = 1024
 
   environment {
     variables = {
       PYTHONUNBUFFERED           = "1"
       S3_BUCKET                  = aws_s3_bucket.reports.id
       CLOUDFRONT_DISTRIBUTION_ID = aws_cloudfront_distribution.reports.id
+      VISION_PROVIDER            = "gemini"
+      GOOGLE_API_KEY             = local.google_api_key
+      OPENAI_API_KEY             = local.openai_api_key
+      ANTHROPIC_API_KEY          = local.anthropic_api_key
     }
   }
 }

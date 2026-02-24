@@ -18,11 +18,11 @@
 <header>
   <h1>Road Conditions</h1>
   <p class="timestamp">Updated: {formattedTime()}</p>
-  <p class="legend">
+  <!-- <p class="legend">
     Road score:
     <span class="legend-bar"></span>
     0% = wet, 100% = dry
-  </p>
+  </p> -->
 </header>
 
 <style>
@@ -40,13 +40,13 @@
     margin: 0 0 10px 0;
   }
 
-  .legend {
+  /* .legend {
     color: #666;
     font-size: 14px;
     margin: 0;
-  }
+  } */
 
-  .legend-bar {
+  /* .legend-bar {
     display: inline-block;
     width: 150px;
     height: 16px;
@@ -54,5 +54,5 @@
     border-radius: 3px;
     vertical-align: middle;
     margin: 0 8px;
-  }
+  } */
 </style>

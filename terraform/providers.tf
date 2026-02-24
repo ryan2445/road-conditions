@@ -4,7 +4,15 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 6.0"
     }
+    onepassword = {
+      source  = "1Password/onepassword"
+      version = "~> 2.0"
+    }
   }
+}
+
+provider "onepassword" {
+  account = var.op_account
 }
 
 provider "aws" {

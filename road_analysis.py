@@ -1,18 +1,15 @@
 import json
+import os
 import re
-from collections.abc import Callable
 from io import BytesIO
 from pathlib import Path
-from typing import NotRequired, TypedDict
+from typing import NotRequired, Protocol, TypedDict
 from urllib.parse import urljoin
+from PIL import Image
 
 import av
-import clip
 import jinja2
 import requests
-import torch
-from PIL import Image
-from clip.model import CLIP
 
 
 class CameraConfig(TypedDict):
@@ -29,39 +26,50 @@ class CameraResult(TypedDict):
     image_bytes: NotRequired[bytes]
 
 
-SAFE_PROMPTS: list[str] = [
-    "a photo of a clear dry road",
-    "a photo of a dry highway with good visibility",
-    "a photo of clear driving conditions",
-    "a traffic camera view of a clear road",
-]
-
-UNSAFE_PROMPTS: list[str] = [
-    "a photo of a snow-covered road",
-    "a photo of an icy road",
-    "a photo of a foggy road with low visibility",
-    "a photo of a wet road in heavy rain",
-    "a photo of a flooded road",
-    "a photo of dangerous winter driving conditions",
-    "a photo of poor visibility on a highway",
-]
+class AnalysisResult(TypedDict):
+    clearness_score: float  # 0.0 (dangerous) to 1.0 (clear/dry)
+    summary: str  # Brief text description
 
 
-def load_model() -> (
-    tuple[CLIP, Callable[[Image.Image], torch.Tensor], torch.Tensor, torch.Tensor, str]
-):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model, preprocess = clip.load("ViT-B/32", device=device, download_root="/tmp")
+class VisionProvider(Protocol):
+    def analyze_image(self, image_bytes: bytes) -> AnalysisResult: ...
 
-    with torch.no_grad():
-        safe_text = clip.tokenize(SAFE_PROMPTS).to(device)
-        unsafe_text = clip.tokenize(UNSAFE_PROMPTS).to(device)
-        safe_features = model.encode_text(safe_text)
-        safe_features /= safe_features.norm(dim=-1, keepdim=True)
-        unsafe_features = model.encode_text(unsafe_text)
-        unsafe_features /= unsafe_features.norm(dim=-1, keepdim=True)
 
-    return model, preprocess, safe_features, unsafe_features, device
+ANALYSIS_PROMPT = """\
+Analyze this traffic camera image and assess road conditions.
+
+Return ONLY valid JSON with these fields:
+- "clearness_score": a float from 0.0 to 1.0 where:
+    1.0 = completely clear, dry pavement, perfect driving conditions
+    0.8 = mostly clear with minor wet spots or light haze
+    0.6 = somewhat clear but noticeably wet, light rain, or thin snow on shoulders
+    0.4 = partially covered with snow/ice, moderate rain, or reduced visibility
+    0.2 = mostly snow/ice-covered, heavy precipitation, or very low visibility
+    0.0 = fully impassable, whiteout conditions, or completely snow/ice-covered
+- "summary": a brief one-sentence description of the road conditions
+
+Example response:
+{"clearness_score": 0.85, "summary": "Dry pavement with clear skies and good visibility."}
+"""
+
+
+def load_provider() -> "VisionProvider":
+    """Instantiate a vision provider based on the VISION_PROVIDER env var."""
+    name = os.environ.get("VISION_PROVIDER", "gemini").lower()
+    if name == "claude":
+        from providers import ClaudeProvider
+
+        return ClaudeProvider()
+    elif name == "openai":
+        from providers import OpenAIProvider
+
+        return OpenAIProvider()
+    elif name == "gemini":
+        from providers import GeminiProvider
+
+        return GeminiProvider()
+    else:
+        raise ValueError(f"Unknown vision provider: {name}")
 
 
 def load_cameras(path: str = "cameras.json") -> dict[str, list[CameraConfig]]:
@@ -101,7 +109,7 @@ def fetch_hls_frame(master_playlist_url: str) -> bytes:
     container = av.open(BytesIO(segment_response.content), format="mpegts")
     for frame in container.decode(video=0):  # type: ignore
         image = frame.to_image()  # type: Image.Image
-        image.save(output, format="JPEG", quality=85)
+        image.save(output, format="JPEG", quality=75)
         break
     container.close()
 
@@ -109,27 +117,21 @@ def fetch_hls_frame(master_playlist_url: str) -> bytes:
 
 
 def check_cameras(
-    model: CLIP,
-    preprocess: Callable[[Image.Image], torch.Tensor],
-    safe_features: torch.Tensor,
-    unsafe_features: torch.Tensor,
-    device: str,
+    provider: VisionProvider,
     cameras: list[CameraConfig],
 ) -> list[CameraResult]:
     results: list[CameraResult] = []
-    preprocessed: list[tuple[int, CameraConfig, bytes, torch.Tensor]] = []
 
-    # Phase 1: Fetch and preprocess all images
-    for idx, camera in enumerate(cameras):
+    for camera in cameras:
         camera_id = camera["id"]
         camera_name = camera["name"]
         stream_url = camera.get("stream")
 
+        # Fetch image
         try:
             if stream_url:
                 image_bytes = fetch_hls_frame(stream_url)
             else:
-                # Fallback to CCTV endpoint
                 url = f"https://nvroads.com/map/Cctv/{camera_id}"
                 response = requests.get(url)
                 response.raise_for_status()
@@ -146,11 +148,23 @@ def check_cameras(
             )
             continue
 
+        # Analyze image
         try:
-            image = Image.open(BytesIO(image_bytes))
-            image_tensor = preprocess(image).unsqueeze(0).to(device)
+            # analysis = provider.analyze_image(image_bytes)
+            # print(
+            #     f"  {camera_name}: {analysis['clearness_score']:.0%} - {analysis['summary']}"
+            # )
+            results.append(
+                {
+                    "id": camera_id,
+                    "name": camera_name,
+                    "error": False,
+                    "clearness_score": None,
+                    "image_bytes": image_bytes,
+                }
+            )
         except Exception as e:
-            print(f"Error processing image for camera {camera_id} ({camera_name}): {e}")
+            print(f"Error analyzing image for camera {camera_id} ({camera_name}): {e}")
             results.append(
                 {
                     "id": camera_id,
@@ -159,59 +173,6 @@ def check_cameras(
                     "clearness_score": None,
                 }
             )
-            continue
-
-        preprocessed.append((idx, camera, image_bytes, image_tensor))
-
-    # Phase 2: Batch encode all images
-    if preprocessed:
-        batch = torch.cat([t for _, _, _, t in preprocessed], dim=0)
-        with torch.no_grad():
-            image_features = model.encode_image(batch)
-            image_features /= image_features.norm(dim=-1, keepdim=True)
-
-        # Phase 3: Compute scores per image using pre-computed text features
-        for i, (idx, camera, image_bytes, _) in enumerate(preprocessed):
-            try:
-                with torch.no_grad():
-                    # Get this image's features (1xD)
-                    img_feat = image_features[i : i + 1]
-
-                    # Compute similarities (img_feat: 1xD, text_features: NxD)
-                    safe_similarities = (img_feat @ safe_features.T).squeeze(0)
-                    unsafe_similarities = (img_feat @ unsafe_features.T).squeeze(0)
-
-                    # Average within each category
-                    avg_safe = safe_similarities.mean()
-                    avg_unsafe = unsafe_similarities.mean()
-
-                    # Scale by CLIP's logit_scale (~100)
-                    scores = torch.stack([avg_safe, avg_unsafe]) * 100.0
-                    # Apply softmax to get probability
-                    probs = torch.softmax(scores, dim=0)
-                    clearness_score = probs[0].cpu().item()
-
-                results.append(
-                    {
-                        "id": camera["id"],
-                        "name": camera["name"],
-                        "error": False,
-                        "clearness_score": float(clearness_score),
-                        "image_bytes": image_bytes,
-                    }
-                )
-            except Exception as e:
-                print(
-                    f"Error computing score for camera {camera['id']} ({camera['name']}): {e}"
-                )
-                results.append(
-                    {
-                        "id": camera["id"],
-                        "name": camera["name"],
-                        "error": True,
-                        "clearness_score": None,
-                    }
-                )
 
     return results
 
@@ -227,8 +188,9 @@ def format_report(results: list[CameraResult]) -> str:
             lines.append(f"{result['id']:<8} {result['name']:<30} {'Error':<12}")
         else:
             score = result["clearness_score"]
-            assert score is not None
-            lines.append(f"{result['id']:<8} {result['name']:<30} {score:.0%}")
+            lines.append(
+                f"{result['id']:<8} {result['name']:<30} {score:.0% if score else 'N/A':<12}"
+            )
 
     return "\n".join(lines)
 

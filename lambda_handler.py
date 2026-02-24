@@ -14,7 +14,7 @@ from road_analysis import (
     generate_email,
     format_report,
     load_cameras,
-    load_model,
+    load_provider,
 )
 
 SES_SENDER = "ryanhoffman2445@gmail.com"
@@ -109,20 +109,18 @@ def upload_data_to_s3(results: list[CameraResult]):
 
 
 def handler(_event: Any, _context: Any) -> dict[str, Any]:
-    model, preprocess, safe_text, unsafe_text, device = load_model()
+    provider = load_provider()
     cameras = load_cameras()
-    results = check_cameras(
-        model, preprocess, safe_text, unsafe_text, device, cameras["mt_rose"]
-    )
+    results = check_cameras(provider, cameras["mt_rose"])
 
     if os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
         # Upload data.json and images for Svelte frontend
         upload_data_to_s3(results)
 
         # Only send email if it's 9am PST = 5pm UTC = 17 hour
-        utc_now = datetime.now(timezone.utc)
-        if utc_now.hour == 17:
-            send_ses_email(results)
+        # utc_now = datetime.now(timezone.utc)
+        # if utc_now.hour == 17:
+        #     send_ses_email(results)
     else:
         print(format_report(results))
 

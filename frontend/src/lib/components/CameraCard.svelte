@@ -23,7 +23,7 @@
     <span class="name">{camera.name}</span>
     {#if !camera.error && camera.clearness_score !== null}
       <ScoreBadge score={camera.clearness_score} />
-    {:else}
+    {:else if camera.error}
       <span class="error-badge">Error</span>
     {/if}
   </div>

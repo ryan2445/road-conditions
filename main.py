@@ -4,7 +4,7 @@ from road_analysis import (
     check_cameras,
     format_report,
     load_cameras,
-    load_model,
+    load_provider,
 )
 
 
@@ -19,11 +19,9 @@ def main() -> None:
     )
     _ = parser.parse_args()
 
-    model, preprocess, safe_text, unsafe_text, device = load_model()
+    provider = load_provider()
     cameras = load_cameras()
-    results = check_cameras(
-        model, preprocess, safe_text, unsafe_text, device, cameras["mt_rose"]
-    )
+    results = check_cameras(provider, cameras["mt_rose"])
 
     print(format_report(results))
 

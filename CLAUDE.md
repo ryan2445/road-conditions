@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This project uses OpenAI's CLIP model to analyze Nevada DOT traffic camera images and classify road conditions (plowed, clear, dry). It runs as an AWS Lambda function triggered hourly, sending results via SES email (at 9am PST) and publishing to an S3 bucket served by CloudFront.
+This project analyzes Nevada DOT traffic camera images to classify road conditions using vision language models (Claude, OpenAI, or Gemini). It runs as an AWS Lambda function triggered hourly, sending results via SES email (at 9am PST) and publishing to an S3 bucket served by CloudFront.
 
 ## Commands
 
@@ -14,6 +14,8 @@ This project uses OpenAI's CLIP model to analyze Nevada DOT traffic camera image
 uv sync                    # Install dependencies
 uv run python main.py      # Run locally (tests mt_rose route only)
 ```
+
+Requires a vision provider API key set as an env var. Default provider is Gemini (`VISION_PROVIDER=gemini`). Set `GOOGLE_API_KEY`/`GOOGLE_MODEL` for Gemini, `ANTHROPIC_API_KEY`/`ANTHROPIC_MODEL` for Claude, or `OPENAI_API_KEY`/`OPENAI_MODEL` for OpenAI.
 
 ### Frontend (Svelte)
 
@@ -44,7 +46,8 @@ cd terraform && terraform init && terraform apply
 
 ### Backend
 
-- `road_analysis.py` - Core logic: loads CLIP model (ViT-B/32), fetches HLS video frames from Nevada DOT streams, runs inference comparing images to safe/unsafe text prompts
+- `road_analysis.py` - Core logic: fetches HLS video frames from Nevada DOT streams via PyAV, defines the `VisionProvider` protocol and analysis prompt, orchestrates camera checks
+- `providers.py` - Vision LLM provider implementations (`ClaudeProvider`, `OpenAIProvider`, `GeminiProvider`). Selected via `VISION_PROVIDER` env var (default: `gemini`)
 - `main.py` - CLI entry point for local testing
 - `lambda_handler.py` - AWS Lambda handler that runs check, sends SES email (only at 9am PST/17:00 UTC), and uploads data.json + images to S3
 - `cameras.json` - Camera IDs, names, and HLS stream URLs grouped by route
@@ -63,7 +66,7 @@ Dev server proxies `/data.json` and `/images/` to production CloudFront URL.
 
 ### Infrastructure (Terraform)
 
-- Lambda (ARM64, 4GB RAM, 300s timeout) with ECR container image
+- Lambda (ARM64, 1GB RAM, 300s timeout) with ECR container image
 - EventBridge hourly schedule
 - S3 bucket (private) + CloudFront with Origin Access Control
 - SES for email delivery
@@ -72,7 +75,7 @@ Dev server proxies `/data.json` and `/images/` to production CloudFront URL.
 
 1. EventBridge triggers Lambda hourly
 2. Lambda fetches HLS frames from Nevada DOT streams via PyAV
-3. CLIP model compares image features to safe/unsafe prompts
+3. Vision LLM analyzes each image and returns a clearness score (0.0-1.0) and summary
 4. Results uploaded to S3 as `data.json` + `images/{id}.jpg` (1-hour cache)
 5. Email sent via SES at 9am PST only
 6. Frontend fetches data.json from CloudFront CDN
