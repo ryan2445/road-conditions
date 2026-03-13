@@ -1,20 +1,51 @@
-# Hourly schedule to update HTML report / send email
-resource "aws_cloudwatch_event_rule" "hourly_schedule" {
+# Hourly schedule to update HTML report / send email (7am-7pm Pacific Time)
+# Using EventBridge Scheduler to properly handle Daylight Savings Time
+resource "aws_scheduler_schedule" "hourly_schedule" {
   name        = "${var.project_name}-hourly"
-  description = "Update HTML report hourly (7am-7pm PST)"
-  # PST = UTC-8; so 7am-7pm PST is 15:00-03:00 UTC
-  schedule_expression = "cron(0 15-23,0-3 * * ? *)"
+  description = "Update HTML report hourly (7am-7pm local time)"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression          = "cron(0 7-19 * * ? *)"
+  schedule_expression_timezone = "America/Los_Angeles"
+
+  target {
+    arn      = aws_lambda_function.road_analysis.arn
+    role_arn = aws_iam_role.scheduler_role.arn
+  }
 }
 
-resource "aws_cloudwatch_event_target" "hourly_target" {
-  rule = aws_cloudwatch_event_rule.hourly_schedule.name
-  arn  = aws_lambda_function.road_analysis.arn
+resource "aws_iam_role" "scheduler_role" {
+  name = "${var.project_name}-scheduler-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "scheduler.amazonaws.com"
+        }
+      }
+    ]
+  })
 }
 
-resource "aws_lambda_permission" "allow_eventbridge_hourly" {
-  statement_id  = "AllowEventBridgeInvokeHourly"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.road_analysis.function_name
-  principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.hourly_schedule.arn
+resource "aws_iam_role_policy" "scheduler_invoke_lambda" {
+  name = "${var.project_name}-scheduler-invoke-lambda"
+  role = aws_iam_role.scheduler_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["lambda:InvokeFunction"]
+        Resource = aws_lambda_function.road_analysis.arn
+      }
+    ]
+  })
 }
