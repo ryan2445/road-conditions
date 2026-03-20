@@ -1,11 +1,8 @@
 import argparse
+from pathlib import Path
 
-from road_analysis import (
-    check_cameras,
-    format_report,
-    load_cameras,
-    load_provider,
-)
+from reporting import format_report, generate_email
+from service import run_camera_analysis
 
 
 def main() -> None:
@@ -17,12 +14,12 @@ def main() -> None:
         help="Output standalone HTML report to file",
         required=False,
     )
-    _ = parser.parse_args()
+    args = parser.parse_args()
 
-    provider = load_provider()
-    cameras = load_cameras()
-    results = check_cameras(provider, cameras["mt_rose"])
+    results = run_camera_analysis()
 
+    if args.html:
+        Path(args.html).write_text(generate_email(results), encoding="utf-8")
     print(format_report(results))
 
 

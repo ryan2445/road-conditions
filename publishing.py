@@ -1,0 +1,112 @@
+import json
+import os
+from datetime import datetime, timezone
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from typing import Any
+
+import boto3
+
+from models import CameraResult
+from reporting import generate_email
+
+AWS_REGION = os.environ.get("AWS_REGION", "us-west-2")
+SES_SENDER = os.environ.get("SES_SENDER", "ryanhoffman2445@gmail.com")
+SES_RECIPIENT = os.environ.get("SES_RECIPIENT", "ryanhoffman2445@gmail.com")
+
+
+def send_ses_email(results: list[CameraResult]) -> None:
+    ses = boto3.client("ses", region_name=AWS_REGION)
+
+    msg = MIMEMultipart("related")
+    msg["Subject"] = "Road Analysis"
+    msg["From"] = SES_SENDER
+    msg["To"] = SES_RECIPIENT
+
+    html_body = generate_email(results)
+    msg.attach(MIMEText(html_body, "html"))
+
+    for result in results:
+        image_bytes = result.get("image_bytes")
+        if result["error"] or image_bytes is None:
+            continue
+
+        img = MIMEImage(image_bytes)
+        img.add_header("Content-ID", f"<camera_{result['id']}>")
+        img.add_header(
+            "Content-Disposition", "inline", filename=f"camera_{result['id']}.jpg"
+        )
+        msg.attach(img)
+
+    ses.send_raw_email(
+        Source=SES_SENDER,
+        Destinations=[SES_RECIPIENT],
+        RawMessage={"Data": msg.as_string()},
+    )
+
+
+def upload_data_to_s3(results: list[CameraResult]) -> None:
+    """Upload JSON data and images to S3 for the Svelte frontend."""
+    bucket = os.environ.get("S3_BUCKET")
+    if not bucket:
+        return
+
+    s3 = boto3.client("s3", region_name=AWS_REGION)
+    cloudfront = boto3.client("cloudfront", region_name=AWS_REGION)
+    timestamp = datetime.now(timezone.utc).isoformat()
+
+    cameras_data = []
+    for result in results:
+        cameras_data.append(
+            {
+                "id": result["id"],
+                "name": result["name"],
+                "error": result["error"],
+                "clearness_score": result.get("clearness_score"),
+                "summary": result.get("summary"),
+                "error_message": result.get("error_message"),
+                "image_url": (
+                    f"images/{result['id']}.jpg" if not result["error"] else None
+                ),
+            }
+        )
+
+        image_bytes = result.get("image_bytes")
+        if result["error"] or image_bytes is None:
+            continue
+
+        s3.put_object(
+            Bucket=bucket,
+            Key=f"images/{result['id']}.jpg",
+            Body=image_bytes,
+            ContentType="image/jpeg",
+            CacheControl="public, max-age=0, s-maxage=3600, must-revalidate",
+        )
+
+    s3.put_object(
+        Bucket=bucket,
+        Key="data.json",
+        Body=json.dumps({"timestamp": timestamp, "cameras": cameras_data}).encode(
+            "utf-8"
+        ),
+        ContentType="application/json",
+        CacheControl="public, max-age=0, s-maxage=3600, must-revalidate",
+    )
+
+    distribution_id = os.environ.get("CLOUDFRONT_DISTRIBUTION_ID")
+    if distribution_id:
+        cloudfront.create_invalidation(
+            DistributionId=distribution_id,
+            InvalidationBatch={
+                "Paths": {"Quantity": 1, "Items": ["/*"]},
+                "CallerReference": timestamp,
+            },
+        )
+
+
+def serialize_results(results: list[CameraResult]) -> list[dict[str, Any]]:
+    return [
+        {key: value for key, value in result.items() if key != "image_bytes"}
+        for result in results
+    ]

@@ -2,8 +2,14 @@ import base64
 import json
 import os
 import re
+from io import BytesIO
 
-from road_analysis import ANALYSIS_PROMPT, AnalysisResult
+import anthropic
+import openai
+import PIL.Image
+from google import genai
+
+from models import ANALYSIS_PROMPT, AnalysisResult
 
 
 def _parse_response(text: str | None) -> AnalysisResult:
@@ -22,8 +28,6 @@ def _parse_response(text: str | None) -> AnalysisResult:
 
 class ClaudeProvider:
     def __init__(self) -> None:
-        import anthropic
-
         self.client = anthropic.Anthropic(
             api_key=os.environ.get("ANTHROPIC_API_KEY"),
         )
@@ -55,8 +59,6 @@ class ClaudeProvider:
 
 class OpenAIProvider:
     def __init__(self) -> None:
-        import openai
-
         self.client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
         self.model = os.environ.get("OPENAI_MODEL", "gpt-4o")
 
@@ -85,15 +87,10 @@ class OpenAIProvider:
 
 class GeminiProvider:
     def __init__(self) -> None:
-        from google import genai
-
         self.client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY"))
         self.model = os.environ.get("GOOGLE_MODEL", "gemini-3-flash-preview")
 
     def analyze_image(self, image_bytes: bytes) -> AnalysisResult:
-        import PIL.Image
-        from io import BytesIO
-
         image = PIL.Image.open(BytesIO(image_bytes))
         response = self.client.models.generate_content(
             model=self.model, contents=[image, ANALYSIS_PROMPT]
