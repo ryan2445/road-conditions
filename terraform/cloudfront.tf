@@ -15,6 +15,7 @@ resource "aws_cloudfront_distribution" "reports" {
   enabled             = true
   default_root_object = "index.html"
   aliases             = [var.domain_name]
+  http_version        = "http2and3"
 
   origin {
     domain_name              = aws_s3_bucket.reports.bucket_regional_domain_name
@@ -23,12 +24,13 @@ resource "aws_cloudfront_distribution" "reports" {
   }
 
   default_cache_behavior {
-    cache_policy_id          = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized
+    cache_policy_id            = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized
     response_headers_policy_id = "67f7725c-6f97-4210-82d7-5512b31e9d03" # SecurityHeadersPolicy
-    allowed_methods          = ["GET", "HEAD"]
-    cached_methods           = ["GET", "HEAD"]
-    target_origin_id         = aws_s3_bucket.reports.id
-    viewer_protocol_policy   = "redirect-to-https"
+    origin_request_policy_id   = "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf" # CORS-S3Origin
+    allowed_methods            = ["GET", "HEAD"]
+    cached_methods             = ["GET", "HEAD"]
+    target_origin_id           = aws_s3_bucket.reports.id
+    viewer_protocol_policy     = "redirect-to-https"
   }
 
   restrictions {
