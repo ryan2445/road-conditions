@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 ## Project Overview
 
 This project analyzes Nevada DOT traffic camera images to classify road conditions using vision language models (Claude, OpenAI, or Gemini). It runs as an AWS Lambda function triggered hourly, sending results via SES email (at 9am PST) and publishing to an S3 bucket served by CloudFront.
@@ -42,12 +46,17 @@ cd terraform && terraform init && terraform apply
 
 ### Backend
 
-- `road_analysis.py` - Core logic: fetches HLS video frames from Nevada DOT streams via PyAV, defines the `VisionProvider` protocol and analysis prompt, orchestrates camera checks
+- `service.py` - Orchestration: loads provider, runs camera analysis across groups, returns `GroupedResults`
+- `models.py` - Shared types (`CameraConfig`, `CameraResult`, `VisionProvider` protocol)
+- `config.py` - Configuration: reads env vars, loads `cameras.json`
+- `camera_sources.py` - Fetches HLS video frames from Nevada DOT streams via PyAV
+- `road_analysis.py` - Vision LLM analysis prompt and image analysis logic
 - `providers.py` - Vision LLM provider implementations (`ClaudeProvider`, `OpenAIProvider`, `GeminiProvider`). Selected via `VISION_PROVIDER` env var (default: `gemini`)
+- `reporting.py` - Text and HTML report formatting, Jinja2 email template rendering
+- `publishing.py` - AWS integration: SES email sending, S3 upload of data.json + images, CloudFront invalidation
 - `main.py` - CLI entry point for local testing
-- `lambda_handler.py` - AWS Lambda handler that runs check, sends SES email (only at 9am PST/17:00 UTC), and uploads data.json + images to S3
+- `lambda_handler.py` - AWS Lambda handler that runs check, sends SES email (only at 9am PST/17:00 UTC), and uploads to S3
 - `cameras.json` - Camera IDs, names, and HLS stream URLs grouped by route
-- `templates/email.html.jinja` - Jinja2 HTML template for email reports
 
 ### Frontend
 
@@ -56,7 +65,7 @@ Svelte 5 app (uses `$state()` runes) served via CloudFront at `road-conditions.r
 - `frontend/src/App.svelte` - Main component, fetches `/data.json` and renders camera grid
 - `frontend/src/lib/components/` - CameraCard, ScoreBadge, Header components
 - `frontend/src/lib/api.ts` - API layer for fetching road conditions
-- `frontend/src/lib/types.ts` - TypeScript interfaces (CameraData, RoadConditionsData)
+- `frontend/src/lib/types.ts` - TypeScript interfaces (`CameraData`, `CameraGroup`, `RoadConditionsData`)
 
 Dev server proxies `/data.json` and `/images/` to production CloudFront URL.
 

@@ -13,6 +13,8 @@ cd ./frontend && ./deploy.sh && cd ..
 
 aws lambda update-function-code --function-name road-analysis --image-uri 079958958349.dkr.ecr.us-west-2.amazonaws.com/road-analysis:latest
 
+sleep 10
+
 aws lambda invoke --function-name road-analysis --invocation-type Event /dev/null
 
 echo "Deploy complete!"

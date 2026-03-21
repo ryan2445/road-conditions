@@ -9,14 +9,17 @@ from typing import Any
 import boto3
 
 from models import CameraResult
-from reporting import generate_email
+from reporting import format_group_name, generate_email
 
 AWS_REGION = os.environ.get("AWS_REGION", "us-west-2")
 SES_SENDER = os.environ.get("SES_SENDER", "ryanhoffman2445@gmail.com")
 SES_RECIPIENT = os.environ.get("SES_RECIPIENT", "ryanhoffman2445@gmail.com")
 
+GroupedResults = dict[str, list[CameraResult]]
 
-def send_ses_email(results: list[CameraResult]) -> None:
+
+# Currently unused
+def send_ses_email(grouped_results: GroupedResults) -> None:
     ses = boto3.client("ses", region_name=AWS_REGION)
 
     msg = MIMEMultipart("related")
@@ -24,20 +27,23 @@ def send_ses_email(results: list[CameraResult]) -> None:
     msg["From"] = SES_SENDER
     msg["To"] = SES_RECIPIENT
 
-    html_body = generate_email(results)
+    html_body = generate_email(grouped_results)
     msg.attach(MIMEText(html_body, "html"))
 
-    for result in results:
-        image_bytes = result.get("image_bytes")
-        if result["error"] or image_bytes is None:
-            continue
+    for results in grouped_results.values():
+        for result in results:
+            image_bytes = result.get("image_bytes")
+            if result["error"] or image_bytes is None:
+                continue
 
-        img = MIMEImage(image_bytes)
-        img.add_header("Content-ID", f"<camera_{result['id']}>")
-        img.add_header(
-            "Content-Disposition", "inline", filename=f"camera_{result['id']}.jpg"
-        )
-        msg.attach(img)
+            img = MIMEImage(image_bytes)
+            img.add_header("Content-ID", f"<camera_{result['id']}>")
+            img.add_header(
+                "Content-Disposition",
+                "inline",
+                filename=f"camera_{result['id']}.jpg",
+            )
+            msg.attach(img)
 
     ses.send_raw_email(
         Source=SES_SENDER,
@@ -46,7 +52,7 @@ def send_ses_email(results: list[CameraResult]) -> None:
     )
 
 
-def upload_data_to_s3(results: list[CameraResult]) -> None:
+def upload_data_to_s3(grouped_results: GroupedResults) -> None:
     """Upload JSON data and images to S3 for the Svelte frontend."""
     bucket = os.environ.get("S3_BUCKET")
     if not bucket:
@@ -56,38 +62,47 @@ def upload_data_to_s3(results: list[CameraResult]) -> None:
     cloudfront = boto3.client("cloudfront", region_name=AWS_REGION)
     timestamp = datetime.now(timezone.utc).isoformat()
 
-    cameras_data = []
-    for result in results:
-        cameras_data.append(
+    groups_data = []
+    for group_name, results in grouped_results.items():
+        cameras_data = []
+        for result in results:
+            cameras_data.append(
+                {
+                    "id": result["id"],
+                    "name": result["name"],
+                    "error": result["error"],
+                    "clearness_score": result.get("clearness_score"),
+                    "summary": result.get("summary"),
+                    "error_message": result.get("error_message"),
+                    "image_url": (
+                        f"images/{result['id']}.jpg" if not result["error"] else None
+                    ),
+                }
+            )
+
+            image_bytes = result.get("image_bytes")
+            if result["error"] or image_bytes is None:
+                continue
+
+            s3.put_object(
+                Bucket=bucket,
+                Key=f"images/{result['id']}.jpg",
+                Body=image_bytes,
+                ContentType="image/jpeg",
+                CacheControl="public, max-age=0, s-maxage=3600, must-revalidate",
+            )
+
+        groups_data.append(
             {
-                "id": result["id"],
-                "name": result["name"],
-                "error": result["error"],
-                "clearness_score": result.get("clearness_score"),
-                "summary": result.get("summary"),
-                "error_message": result.get("error_message"),
-                "image_url": (
-                    f"images/{result['id']}.jpg" if not result["error"] else None
-                ),
+                "name": format_group_name(group_name),
+                "cameras": cameras_data,
             }
-        )
-
-        image_bytes = result.get("image_bytes")
-        if result["error"] or image_bytes is None:
-            continue
-
-        s3.put_object(
-            Bucket=bucket,
-            Key=f"images/{result['id']}.jpg",
-            Body=image_bytes,
-            ContentType="image/jpeg",
-            CacheControl="public, max-age=0, s-maxage=3600, must-revalidate",
         )
 
     s3.put_object(
         Bucket=bucket,
         Key="data.json",
-        Body=json.dumps({"timestamp": timestamp, "cameras": cameras_data}).encode(
+        Body=json.dumps({"timestamp": timestamp, "groups": groups_data}).encode(
             "utf-8"
         ),
         ContentType="application/json",
@@ -105,8 +120,11 @@ def upload_data_to_s3(results: list[CameraResult]) -> None:
         )
 
 
-def serialize_results(results: list[CameraResult]) -> list[dict[str, Any]]:
-    return [
-        {key: value for key, value in result.items() if key != "image_bytes"}
-        for result in results
-    ]
+def serialize_results(grouped_results: GroupedResults) -> dict[str, Any]:
+    return {
+        group_name: [
+            {key: value for key, value in result.items() if key != "image_bytes"}
+            for result in results
+        ]
+        for group_name, results in grouped_results.items()
+    }

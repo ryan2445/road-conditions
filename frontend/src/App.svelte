@@ -32,11 +32,16 @@
     <p class="status error">{error}</p>
   {:else if data}
     <Header timestamp={data.timestamp} />
-    <div class="grid">
-      {#each data.cameras as camera (camera.id)}
-        <CameraCard {camera} />
-      {/each}
-    </div>
+    {#each data.groups as group (group.name)}
+      <section class="group">
+        <h2 class="group-name">{group.name}</h2>
+        <div class="grid">
+          {#each group.cameras as camera (camera.id)}
+            <CameraCard {camera} />
+          {/each}
+        </div>
+      </section>
+    {/each}
   {/if}
 </main>
 
@@ -61,6 +66,16 @@
 
   .status.error {
     color: #d32f2f;
+  }
+
+  .group {
+    margin-bottom: 32px;
+  }
+
+  .group-name {
+    color: #333;
+    font-size: 1.25rem;
+    margin: 0 0 12px 0;
   }
 
   .grid {

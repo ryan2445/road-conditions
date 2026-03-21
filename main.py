@@ -1,11 +1,17 @@
 import argparse
 from pathlib import Path
 
+import logging
+import sys
 from reporting import format_report, generate_email
 from service import run_camera_analysis
 
 
 def main() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        stream=sys.stdout,
+    )
     parser = argparse.ArgumentParser(description="Check road conditions from cameras")
     parser.add_argument(
         "--html",
@@ -16,11 +22,11 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    results = run_camera_analysis()
+    grouped_results = run_camera_analysis()
 
     if args.html:
-        Path(args.html).write_text(generate_email(results), encoding="utf-8")
-    print(format_report(results))
+        Path(args.html).write_text(generate_email(grouped_results), encoding="utf-8")
+    print(format_report(grouped_results))
 
 
 if __name__ == "__main__":

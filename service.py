@@ -1,3 +1,5 @@
+import logging
+
 from config import get_vision_provider_name, load_cameras
 from camera_sources import fetch_camera_image
 from models import CameraConfig, CameraResult, VisionProvider
@@ -23,12 +25,12 @@ def load_provider() -> VisionProvider:
 
 
 def collect_camera_results(
-    provider: VisionProvider,
     cameras: list[CameraConfig],
 ) -> list[CameraResult]:
     results: list[CameraResult] = []
 
     for camera in cameras:
+        logging.info("Fetching camera: %s (id=%s)", camera["name"], camera["id"])
         image_result = _fetch_camera_result(camera)
         if image_result["error"]:
             results.append(image_result)
@@ -38,6 +40,8 @@ def collect_camera_results(
         if not image_bytes:
             results.append(_error_result(camera, "no image data"))
             continue
+
+        # Disabled to save costs for now
         # try:
         #     analysis = provider.analyze_image(image_bytes)
         # except Exception as error:
@@ -58,10 +62,19 @@ def collect_camera_results(
     return results
 
 
-def run_camera_analysis(group: str = "mt_rose") -> list[CameraResult]:
-    provider = load_provider()
+GroupedResults = dict[str, list[CameraResult]]
+
+
+def run_camera_analysis(group: str | None = None) -> GroupedResults:
+    # provider = load_provider()
+    logging.info("Loading camera configurations...")
     cameras_by_group = load_cameras()
-    return collect_camera_results(provider, cameras_by_group[group])
+    if group:
+        return {group: collect_camera_results(cameras_by_group[group])}
+    return {
+        name: collect_camera_results(cameras)
+        for name, cameras in cameras_by_group.items()
+    }
 
 
 def _fetch_camera_result(camera: CameraConfig) -> CameraResult:

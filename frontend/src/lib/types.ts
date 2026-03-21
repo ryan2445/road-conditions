@@ -6,7 +6,12 @@ export interface CameraData {
   image_url: string | null;
 }
 
+export interface CameraGroup {
+  name: string;
+  cameras: CameraData[];
+}
+
 export interface RoadConditionsData {
   timestamp: string;
-  cameras: CameraData[];
+  groups: CameraGroup[];
 }
