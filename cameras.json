@@ -46,6 +46,43 @@
       "stream": "https://d2wse2.its.nv.gov/renoxcd03/8680813f-95d1-47c0-bf28-e7d265e1fced_hspflirxcd03_public.stream/playlist.m3u8"
     }
   ],
+  "washoe_lake": [
+    {
+      "id": "9287",
+      "name": "I580@Galena Forest Bridge",
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/5bc7b2be-7856-4e47-8bf4-bb29ead9cb77_hspflirxcd03_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "9285",
+      "name": "I580 @ Steamboat Hill Bridge",
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/4e8ab145-d2e7-480a-b011-8d182a301ab8_hspflirxcd03_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "9286",
+      "name": "I580@Galena Creek Bridge",
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/56b31748-b28a-4f52-894c-b92ddb0fe617_hspflirxcd03_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "9288",
+      "name": "I580 @ Browns Creek Bridge",
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/9b83a2e6-0fee-4c04-8ce8-099ee7a92203_hspflirxcd02_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "18675",
+      "name": "I580 NB Bowers Mansion Highmast",
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/9f56a5fa-30af-4939-abe8-584242a1cd30_hspflirxcd03_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "9295",
+      "name": "I580 @ N. Washoe Valley",
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/9bb80468-eb35-4904-99dc-9a2947f1c7e3_hspflirxcd02_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "18698",
+      "name": "I580 SB South of Bellevue",
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/f1be0fb7-8696-49a2-a7bb-e86a02e8de9e_hspflirxcd03_public.stream/playlist.m3u8"
+    }
+  ],
   "south_reno": [
     {
       "id": "9404",
