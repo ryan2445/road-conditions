@@ -22,6 +22,14 @@ class AnalysisResult(TypedDict):
     summary: str  # Brief text description
 
 
+class RoadConditionAlert(TypedDict):
+    roadway: str
+    description: str
+    condition: str
+    secondaryConditions: list[str]
+    lastUpdated: str
+
+
 class VisionProvider(Protocol):
     def analyze_image(self, image_bytes: bytes) -> AnalysisResult: ...
 

@@ -8,7 +8,7 @@ from typing import Any
 
 import boto3
 
-from models import CameraResult
+from models import CameraResult, RoadConditionAlert
 from reporting import format_group_name, generate_email
 
 AWS_REGION = os.environ.get("AWS_REGION", "us-west-2")
@@ -52,7 +52,10 @@ def send_ses_email(grouped_results: GroupedResults) -> None:
     )
 
 
-def upload_data_to_s3(grouped_results: GroupedResults) -> None:
+def upload_data_to_s3(
+    grouped_results: GroupedResults,
+    road_conditions: dict[str, list[RoadConditionAlert]] | None = None,
+) -> None:
     """Upload JSON data and images to S3 for the Svelte frontend."""
     bucket = os.environ.get("S3_BUCKET")
     if not bucket:
@@ -92,12 +95,14 @@ def upload_data_to_s3(grouped_results: GroupedResults) -> None:
                 CacheControl="public, max-age=0, s-maxage=3600, must-revalidate",
             )
 
-        groups_data.append(
-            {
-                "name": format_group_name(group_name),
-                "cameras": cameras_data,
-            }
-        )
+        group_entry: dict[str, Any] = {
+            "name": format_group_name(group_name),
+            "cameras": cameras_data,
+        }
+        alerts = (road_conditions or {}).get(group_name, [])
+        if alerts:
+            group_entry["alerts"] = alerts
+        groups_data.append(group_entry)
 
     s3.put_object(
         Bucket=bucket,

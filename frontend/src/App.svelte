@@ -3,6 +3,7 @@
   import type { RoadConditionsData } from './lib/types';
   import Header from './lib/components/Header.svelte';
   import CameraCard from './lib/components/CameraCard.svelte';
+  import AlertBanner from './lib/components/AlertBanner.svelte';
 
   let data: RoadConditionsData | null = $state(null);
   let error: string | null = $state(null);
@@ -35,6 +36,9 @@
     {#each data.groups as group (group.name)}
       <section class="group">
         <h2 class="group-name">{group.name}</h2>
+        {#if group.alerts?.length}
+          <AlertBanner alerts={group.alerts} />
+        {/if}
         <div class="grid">
           {#each group.cameras as camera (camera.id)}
             <CameraCard {camera} />
