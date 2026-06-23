@@ -11,6 +11,7 @@ This project analyzes Nevada DOT traffic camera images to classify road conditio
 ### Backend (Python)
 
 ```bash
+cd backend
 uv sync                    # Install dependencies
 uv run python main.py      # Run locally (tests mt_rose route only)
 ```
@@ -36,7 +37,7 @@ npm run format             # Prettier
 ./deploy.sh
 
 # Or manually:
-DOCKER_BUILDKIT=1 docker build --platform linux/arm64 --provenance=false -t road-analysis .
+DOCKER_BUILDKIT=1 docker build --platform linux/arm64 --provenance=false -t road-analysis backend
 
 # Infrastructure
 cd terraform && terraform init && terraform apply
@@ -44,19 +45,19 @@ cd terraform && terraform init && terraform apply
 
 ## Architecture
 
-### Backend
+### Backend (inside `backend/`)
 
-- `service.py` - Orchestration: loads provider, runs camera analysis across groups, returns `GroupedResults`
-- `models.py` - Shared types (`CameraConfig`, `CameraResult`, `VisionProvider` protocol)
-- `config.py` - Configuration: reads env vars, loads `cameras.json`
-- `camera_sources.py` - Fetches HLS video frames from Nevada DOT streams via PyAV
-- `road_analysis.py` - Vision LLM analysis prompt and image analysis logic
-- `providers.py` - Vision LLM provider implementations (`ClaudeProvider`, `OpenAIProvider`, `GeminiProvider`). Selected via `VISION_PROVIDER` env var (default: `gemini`)
-- `reporting.py` - Text and HTML report formatting, Jinja2 email template rendering
-- `publishing.py` - AWS integration: SES email sending, S3 upload of data.json + images, CloudFront invalidation
-- `main.py` - CLI entry point for local testing
-- `lambda_handler.py` - AWS Lambda handler that runs check, sends SES email (only at 9am PST/17:00 UTC), and uploads to S3
-- `cameras.json` - Camera IDs, names, and HLS stream URLs grouped by route
+- `backend/service.py` - Orchestration: loads provider, runs camera analysis across groups, returns `GroupedResults`
+- `backend/models.py` - Shared types (`CameraConfig`, `CameraResult`, `VisionProvider` protocol)
+- `backend/config.py` - Configuration: reads env vars, loads `cameras.json`
+- `backend/camera_sources.py` - Fetches HLS video frames from Nevada DOT streams via PyAV
+- `backend/road_analysis.py` - Vision LLM analysis prompt and image analysis logic
+- `backend/providers.py` - Vision LLM provider implementations (`ClaudeProvider`, `OpenAIProvider`, `GeminiProvider`). Selected via `VISION_PROVIDER` env var (default: `gemini`)
+- `backend/reporting.py` - Text and HTML report formatting, Jinja2 email template rendering
+- `backend/publishing.py` - AWS integration: SES email sending, S3 upload of data.json + images, CloudFront invalidation
+- `backend/main.py` - CLI entry point for local testing
+- `backend/lambda_handler.py` - AWS Lambda handler that runs check, sends SES email (only at 9am PST/17:00 UTC), and uploads to S3
+- `backend/cameras.json` - Camera IDs, names, and HLS stream URLs grouped by route
 
 ### Frontend
 
