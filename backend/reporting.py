@@ -10,7 +10,7 @@ GroupedResults = dict[str, list[CameraResult]]
 
 def format_report(grouped_results: GroupedResults) -> str:
     lines: list[str] = []
-    header = f"{'ID':<8} {'Name':<30} {'Road Clear':<12}"
+    header = f"{'ID':<8} {'Name':<30} {'Status':<12}"
 
     for group_name, results in grouped_results.items():
         lines.append(f"\n=== {format_group_name(group_name)} ===")
@@ -18,21 +18,11 @@ def format_report(grouped_results: GroupedResults) -> str:
         lines.append("-" * len(header))
 
         for result in results:
-            score_display = format_score(result)
-            lines.append(f"{result['id']:<8} {result['name']:<30} {score_display:<12}")
+            status_display = "Error" if result["error"] else "OK"
+            lines.append(f"{result['id']:<8} {result['name']:<30} {status_display:<12}")
 
     return "\n".join(lines)
 
-
-def format_score(result: CameraResult) -> str:
-    if result["error"]:
-        return "Error"
-
-    score = result["clearness_score"]
-    if score is None:
-        return "N/A"
-
-    return f"{score:.0%}"
 
 
 @lru_cache(maxsize=1)

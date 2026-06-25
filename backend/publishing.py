@@ -74,8 +74,6 @@ def upload_data_to_s3(
                     "id": result["id"],
                     "name": result["name"],
                     "error": result["error"],
-                    "clearness_score": result.get("clearness_score"),
-                    "summary": result.get("summary"),
                     "error_message": result.get("error_message"),
                     "image_url": (
                         f"images/{result['id']}.jpg" if not result["error"] else None

@@ -1,20 +1,15 @@
 <html>
 <body>
 <h2>Road Cameras</h2>
-<p style="color: #666; font-size: 14px;">Road score: 0% = wet, 100% = dry</p>
 <table border='1' cellpadding='8' cellspacing='0'>
-<tr><th>Name</th><th>Image</th><th>Road Score</th></tr>
+<tr><th>Name</th><th>Image</th></tr>
 {%- for result in results %}
 <tr>
 <td>{{ result.name }}</td>
 {%- if result.error %}
 <td>Error</td>
-<td>Error</td>
 {%- else %}
 <td><img src='cid:camera_{{ result.id }}' width='320'></td>
-{%- set score = result.clearness_score %}
-{%- set hue = (score * 120)|int %}
-<td style="background-color: hsl({{ hue }}, 70%, 80%); font-weight: bold;">{{ "%.0f%%"|format(score * 100) }}</td>
 {%- endif %}
 </tr>
 {%- endfor %}

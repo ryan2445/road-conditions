@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { CameraData } from '../types';
-  import ScoreBadge from './ScoreBadge.svelte';
 
   interface Props {
     camera: CameraData;
@@ -21,9 +20,7 @@
   </div>
   <div class="info">
     <span class="name">{camera.name}</span>
-    {#if !camera.error && camera.clearness_score !== null}
-      <ScoreBadge score={camera.clearness_score} />
-    {:else if camera.error}
+    {#if camera.error}
       <span class="error-badge">Error</span>
     {/if}
   </div>

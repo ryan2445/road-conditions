@@ -12,10 +12,6 @@ resource "aws_lambda_function" "road_analysis" {
       PYTHONUNBUFFERED           = "1"
       S3_BUCKET                  = aws_s3_bucket.reports.id
       CLOUDFRONT_DISTRIBUTION_ID = aws_cloudfront_distribution.reports.id
-      VISION_PROVIDER            = "gemini"
-      GOOGLE_API_KEY             = local.google_api_key
-      OPENAI_API_KEY             = local.openai_api_key
-      ANTHROPIC_API_KEY          = local.anthropic_api_key
     }
   }
 }

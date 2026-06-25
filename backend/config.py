@@ -165,7 +165,3 @@ def group_cameras(cameras: list[dict]) -> dict[str, list[CameraConfig]]:
         groups[group_key].sort(key=lambda c: c["name"])
         
     return groups
-
-
-def get_vision_provider_name() -> str:
-    return os.environ.get("VISION_PROVIDER", "gemini").lower()

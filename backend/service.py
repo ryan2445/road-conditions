@@ -1,27 +1,8 @@
 import logging
 
-from config import get_vision_provider_name, load_cameras
+from config import load_cameras
 from camera_sources import fetch_camera_image
-from models import CameraConfig, CameraResult, VisionProvider
-from providers import ClaudeProvider, GeminiProvider, OpenAIProvider
-
-ProviderFactory = type[VisionProvider]
-
-PROVIDER_FACTORIES: dict[str, ProviderFactory] = {
-    "claude": ClaudeProvider,
-    "openai": OpenAIProvider,
-    "gemini": GeminiProvider,
-}
-
-
-def load_provider() -> VisionProvider:
-    """Instantiate a vision provider based on the VISION_PROVIDER env var."""
-    name = get_vision_provider_name()
-    try:
-        provider_factory = PROVIDER_FACTORIES[name]
-    except KeyError as error:
-        raise ValueError(f"Unknown vision provider: {name}") from error
-    return provider_factory()
+from models import CameraConfig, CameraResult
 
 
 def collect_camera_results(
@@ -41,20 +22,11 @@ def collect_camera_results(
             results.append(_error_result(camera, "no image data"))
             continue
 
-        # Disabled to save costs for now
-        # try:
-        #     analysis = provider.analyze_image(image_bytes)
-        # except Exception as error:
-        #     results.append(_error_result(camera, f"analysis failed: {error}"))
-        #     continue
-
         results.append(
             {
                 "id": camera["id"],
                 "name": camera["name"],
                 "error": False,
-                "clearness_score": None,
-                "summary": None,
                 "image_bytes": image_bytes,
             }
         )
@@ -66,7 +38,6 @@ GroupedResults = dict[str, list[CameraResult]]
 
 
 def run_camera_analysis(group: str | None = None) -> GroupedResults:
-    # provider = load_provider()
     logging.info("Loading camera configurations...")
     cameras_by_group = load_cameras()
     if group:
@@ -87,8 +58,6 @@ def _fetch_camera_result(camera: CameraConfig) -> CameraResult:
         "id": camera["id"],
         "name": camera["name"],
         "error": False,
-        "clearness_score": None,
-        "summary": None,
         "image_bytes": image_bytes,
     }
 
@@ -98,7 +67,6 @@ def _error_result(camera: CameraConfig, message: str) -> CameraResult:
         "id": camera["id"],
         "name": camera["name"],
         "error": True,
-        "clearness_score": None,
-        "summary": None,
         "error_message": message,
     }
+
