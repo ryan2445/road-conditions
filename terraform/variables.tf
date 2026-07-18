@@ -13,4 +13,7 @@ variable "domain_name" {
   default = "road-conditions.ryanh.click"
 }
 
-
+variable "iracing_domain_name" {
+  type    = string
+  default = "iracing.ryanh.click"
+}

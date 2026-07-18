@@ -1,7 +1,8 @@
 resource "aws_acm_certificate" "cloudfront" {
-  provider          = aws.us_east_1
-  domain_name       = var.domain_name
-  validation_method = "DNS"
+  provider                  = aws.us_east_1
+  domain_name               = var.domain_name
+  subject_alternative_names = [var.iracing_domain_name]
+  validation_method         = "DNS"
 }
 
 resource "aws_cloudfront_origin_access_control" "reports" {
@@ -11,10 +12,30 @@ resource "aws_cloudfront_origin_access_control" "reports" {
   signing_protocol                  = "sigv4"
 }
 
+resource "aws_cloudfront_function" "index_rewrite" {
+  name    = "${var.project_name}-index-rewrite"
+  runtime = "cloudfront-js-2.0"
+  publish = true
+  code    = <<EOF
+function handler(event) {
+    var request = event.request;
+    var uri = request.uri;
+    var host = request.headers.host ? request.headers.host.value : '';
+    
+    if (host === 'iracing.ryanh.click' && uri === '/') {
+        request.uri = '/tracker/index.html';
+        return request;
+    }
+    
+    return request;
+}
+EOF
+}
+
 resource "aws_cloudfront_distribution" "reports" {
   enabled             = true
   default_root_object = "index.html"
-  aliases             = [var.domain_name]
+  aliases             = [var.domain_name, var.iracing_domain_name]
   http_version        = "http2and3"
 
   origin {
@@ -31,6 +52,11 @@ resource "aws_cloudfront_distribution" "reports" {
     cached_methods             = ["GET", "HEAD"]
     target_origin_id           = aws_s3_bucket.reports.id
     viewer_protocol_policy     = "redirect-to-https"
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.index_rewrite.arn
+    }
   }
 
   restrictions {
