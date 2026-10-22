@@ -85,94 +85,14 @@
   ],
   "south_reno": [
     {
-      "id": "9404",
-      "name": "I580 @ S McCarran NE",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/93c04670-53ad-453b-86ee-219fed4b89e9_hspflirxcd01_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "9405",
-      "name": "I580 @ S McCarran SW",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/04059402-954a-4821-984a-ee2d298285c9_hspflirxcd02_public.stream/playlist.m3u8"
-    },
-    {
       "id": "9322",
       "name": "I580 @ Neil Rd",
       "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/ae322144-57b0-4536-bdef-fde6ab3a0a9d_hspflirxcd01_public.stream/playlist.m3u8"
     },
     {
-      "id": "9403",
-      "name": "I580 @ Huffaker",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/63f93a5f-51a7-4a4f-b722-932606d4c129_hspflirxcd02_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "9402",
-      "name": "I580 @ S Virginia/Patriot",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/fde6b048-8566-495b-a487-286de0618a48_hspflirxcd01_public.stream/playlist.m3u8"
-    },
-    {
       "id": "9401",
       "name": "I580 @ South Meadows",
       "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/cc0a5f0c-99f5-4e97-bfb4-5ef95248a5d7_hspflirxcd03_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "9400",
-      "name": "I580 N of Damonte Ranch",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/dc073178-69d7-4061-a8c0-f5805adb132a_hspflirxcd01_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "9399",
-      "name": "I580 @ Damonte Ranch",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/e84cec6d-f2cb-41db-adb7-2ee788afe059_hspflirxcd01_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "18681",
-      "name": "I580 @ Summit Mall SB",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/a47f9d4f-e3b4-4fc2-b48f-12591750db64_hspflirxcd03_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "18680",
-      "name": "I580 @ SR431 Off Ramp NB",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/f2d29af0-0d66-4605-a4fd-dd0d31c24b0d_hspflirxcd03_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "9423",
-      "name": "McCarran & Caughlin/Cashill",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/fb89196b-15dc-48fb-992e-030b7a325d34_hspflirxcd02_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "9424",
-      "name": "McCarran & Skyline",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/83b3274b-1318-4d41-bf53-7117f4316bc8_hspflirxcd02_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "9425",
-      "name": "McCarran & Greensboro",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/4e5349ca-107e-4809-b484-d68a5cda7f43_hspflirxcd01_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "9427",
-      "name": "McCarran & Lakeside",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/468fec45-7a0a-46be-b3d2-380ce76d2e3f_hspflirxcd01_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "9429",
-      "name": "McCarran & Kietzke",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/976d8ebc-bf16-48dc-9aab-ecceddf97d3a_hspflirxcd02_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "9428",
-      "name": "McCarran & Talbot",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/add518c5-683a-4495-9ed7-4ddd437fb341_hspflirxcd02_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "9426",
-      "name": "McCarran & Plumas",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/69413da8-9c1f-4079-94b9-ecb83a04ad85_hspflirxcd02_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "9354",
-      "name": "SR341 @ Highland Flats",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/b51a711c-6e13-4e54-958a-acc6a9680e87_hspflirxcd02_public.stream/playlist.m3u8"
     }
   ]
 }

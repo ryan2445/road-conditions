@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import datetime, timezone
 from email.mime.image import MIMEImage
@@ -10,6 +11,8 @@ import boto3
 
 from models import CameraResult, RoadConditionAlert
 from reporting import format_group_name, generate_email
+
+logger = logging.getLogger(__name__)
 
 AWS_REGION = os.environ.get("AWS_REGION", "us-west-2")
 SES_SENDER = os.environ.get("SES_SENDER", "ryanhoffman2445@gmail.com")
@@ -52,11 +55,38 @@ def send_ses_email(grouped_results: GroupedResults) -> None:
     )
 
 
+def delete_stale_s3_images(s3_client: Any, bucket: str, active_keys: set[str]) -> None:
+    """Removes any images under the images/ prefix in S3 that are not in active_keys."""
+    try:
+        paginator = s3_client.get_paginator("list_objects_v2")
+        stale_objects: list[dict[str, str]] = []
+
+        for page in paginator.paginate(Bucket=bucket, Prefix="images/"):
+            for obj in page.get("Contents", []):
+                key = obj.get("Key")
+                if key and not key.endswith("/") and key not in active_keys:
+                    stale_objects.append({"Key": key})
+
+        if not stale_objects:
+            logger.info("No stale images found in S3 to delete.")
+            return
+
+        for i in range(0, len(stale_objects), 1000):
+            chunk = stale_objects[i : i + 1000]
+            s3_client.delete_objects(
+                Bucket=bucket,
+                Delete={"Objects": chunk},
+            )
+        logger.info("Deleted %d stale image(s) from S3.", len(stale_objects))
+    except Exception as err:
+        logger.warning("Failed to clean up stale images from S3: %s", err)
+
+
 def upload_data_to_s3(
     grouped_results: GroupedResults,
     road_conditions: dict[str, list[RoadConditionAlert]] | None = None,
 ) -> None:
-    """Upload JSON data and images to S3 for the Svelte frontend."""
+    """Upload JSON data and images to S3 for the Svelte frontend, removing stale images."""
     bucket = os.environ.get("S3_BUCKET")
     if not bucket:
         return
@@ -65,6 +95,7 @@ def upload_data_to_s3(
     cloudfront = boto3.client("cloudfront", region_name=AWS_REGION)
     timestamp = datetime.now(timezone.utc).isoformat()
 
+    uploaded_keys: set[str] = set()
     groups_data = []
     for group_name, results in grouped_results.items():
         cameras_data = []
@@ -85,13 +116,14 @@ def upload_data_to_s3(
             if result["error"] or image_bytes is None:
                 continue
 
+            image_key = f"images/{result['id']}.jpg"
             s3.put_object(
                 Bucket=bucket,
-                Key=f"images/{result['id']}.jpg",
+                Key=image_key,
                 Body=image_bytes,
                 ContentType="image/jpeg",
-                CacheControl="public, max-age=0, s-maxage=3600, must-revalidate",
             )
+            uploaded_keys.add(image_key)
 
         group_entry: dict[str, Any] = {
             "name": format_group_name(group_name),
@@ -102,6 +134,8 @@ def upload_data_to_s3(
             group_entry["alerts"] = alerts
         groups_data.append(group_entry)
 
+    delete_stale_s3_images(s3, bucket, uploaded_keys)
+
     s3.put_object(
         Bucket=bucket,
         Key="data.json",
@@ -109,7 +143,6 @@ def upload_data_to_s3(
             "utf-8"
         ),
         ContentType="application/json",
-        CacheControl="public, max-age=0, s-maxage=3600, must-revalidate",
     )
 
     distribution_id = os.environ.get("CLOUDFRONT_DISTRIBUTION_ID")

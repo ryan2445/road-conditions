@@ -12,7 +12,7 @@ BUCKET="road-analysis-reports-${ACCOUNT_ID}"
 aws s3 sync dist/ "s3://${BUCKET}/" \
   --exclude "data.json" \
   --exclude "images/*" \
-  --delete \
-  --cache-control "public, max-age=0, s-maxage=3600, must-revalidate"
+  --exclude "tracker/*" \
+  --delete
 
 echo "Frontend deploy complete!"
