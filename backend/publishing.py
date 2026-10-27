@@ -15,8 +15,8 @@ from reporting import format_group_name, generate_email
 logger = logging.getLogger(__name__)
 
 AWS_REGION = os.environ.get("AWS_REGION", "us-west-2")
-SES_SENDER = os.environ.get("SES_SENDER", "ryanhoffman2445@gmail.com")
-SES_RECIPIENT = os.environ.get("SES_RECIPIENT", "ryanhoffman2445@gmail.com")
+SES_SENDER = os.environ.get("SES_SENDER", "")
+SES_RECIPIENT = os.environ.get("SES_RECIPIENT", "")
 
 GroupedResults = dict[str, list[CameraResult]]
 
