@@ -52,11 +52,6 @@ resource "aws_iam_role_policy" "lambda_permissions" {
     Statement = [
       {
         Effect   = "Allow"
-        Action   = ["ses:SendEmail", "ses:SendRawEmail"]
-        Resource = "*"
-      },
-      {
-        Effect   = "Allow"
         Action   = ["s3:PutObject", "s3:DeleteObject"]
         Resource = "${aws_s3_bucket.reports.arn}/*"
       },

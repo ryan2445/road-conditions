@@ -1,8 +1,8 @@
-# Hourly schedule to update HTML report / send email (7am-7pm Pacific Time)
+# Hourly schedule to update road camera data (7am-7pm Pacific Time)
 # Using EventBridge Scheduler to properly handle Daylight Savings Time
 resource "aws_scheduler_schedule" "hourly_schedule" {
   name        = "${var.project_name}-hourly"
-  description = "Update HTML report hourly (7am-7pm local time)"
+  description = "Update road camera data hourly (7am-7pm local time)"
 
   flexible_time_window {
     mode = "OFF"

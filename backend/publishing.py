@@ -2,57 +2,18 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-from email.mime.image import MIMEImage
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from typing import Any
 
 import boto3
 
 from models import CameraResult, RoadConditionAlert
-from reporting import format_group_name, generate_email
+from reporting import format_group_name
 
 logger = logging.getLogger(__name__)
 
 AWS_REGION = os.environ.get("AWS_REGION", "us-west-2")
-SES_SENDER = os.environ.get("SES_SENDER", "")
-SES_RECIPIENT = os.environ.get("SES_RECIPIENT", "")
 
 GroupedResults = dict[str, list[CameraResult]]
-
-
-# Currently unused
-def send_ses_email(grouped_results: GroupedResults) -> None:
-    ses = boto3.client("ses", region_name=AWS_REGION)
-
-    msg = MIMEMultipart("related")
-    msg["Subject"] = "Road Analysis"
-    msg["From"] = SES_SENDER
-    msg["To"] = SES_RECIPIENT
-
-    html_body = generate_email(grouped_results)
-    msg.attach(MIMEText(html_body, "html"))
-
-    for results in grouped_results.values():
-        for result in results:
-            image_bytes = result.get("image_bytes")
-            if result["error"] or image_bytes is None:
-                continue
-
-            img = MIMEImage(image_bytes)
-            img.add_header("Content-ID", f"<camera_{result['id']}>")
-            img.add_header(
-                "Content-Disposition",
-                "inline",
-                filename=f"camera_{result['id']}.jpg",
-            )
-            msg.attach(img)
-
-    ses.send_raw_email(
-        Source=SES_SENDER,
-        Destinations=[SES_RECIPIENT],
-        RawMessage={"Data": msg.as_string()},
-    )
 
 
 def delete_stale_s3_images(s3_client: Any, bucket: str, active_keys: set[str]) -> None:
