@@ -53,19 +53,9 @@
       "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/5bc7b2be-7856-4e47-8bf4-bb29ead9cb77_hspflirxcd03_public.stream/playlist.m3u8"
     },
     {
-      "id": "9285",
-      "name": "I580 @ Steamboat Hill Bridge",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/4e8ab145-d2e7-480a-b011-8d182a301ab8_hspflirxcd03_public.stream/playlist.m3u8"
-    },
-    {
       "id": "9286",
       "name": "I580@Galena Creek Bridge",
       "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/56b31748-b28a-4f52-894c-b92ddb0fe617_hspflirxcd03_public.stream/playlist.m3u8"
-    },
-    {
-      "id": "9288",
-      "name": "I580 @ Browns Creek Bridge",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/9b83a2e6-0fee-4c04-8ce8-099ee7a92203_hspflirxcd02_public.stream/playlist.m3u8"
     },
     {
       "id": "18675",
@@ -78,9 +68,19 @@
       "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/9bb80468-eb35-4904-99dc-9a2947f1c7e3_hspflirxcd02_public.stream/playlist.m3u8"
     },
     {
-      "id": "18698",
-      "name": "I580 SB South of Bellevue",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/f1be0fb7-8696-49a2-a7bb-e86a02e8de9e_hspflirxcd03_public.stream/playlist.m3u8"
+      "id": "9435",
+      "name": "US395 @ Washoe Lake Flood Watch",
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/760c4f77-267e-46d9-a011-093f00d4c618_hspflirxcd03_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "18677",
+      "name": "I580 NB East Lake Onramp",
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/b1ae816d-f2f9-47ff-a60c-abf5be29d6cd_hspflirxcd03_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "9294",
+      "name": "I580 @ Lakeview Hill",
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/5a098c71-5e8f-4116-8754-66cdc1cbd2d1_hspflirxcd02_public.stream/playlist.m3u8"
     }
   ],
   "south_reno": [
@@ -93,6 +93,48 @@
       "id": "9401",
       "name": "I580 @ South Meadows",
       "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/cc0a5f0c-99f5-4e97-bfb4-5ef95248a5d7_hspflirxcd03_public.stream/playlist.m3u8"
+    }
+  ],
+  "i80": [
+    {
+      "id": "9310",
+      "name": "I80 @ Stoker Overpass",
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/d3ab027c-5b39-4dcb-b586-4b7b88d68f48_hspflirxcd01_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "9308",
+      "name": "I80 @ W McCarran Blvd",
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/497b0fc4-a537-48a4-a5ed-b0457c08ff3d_hspflirxcd01_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "9306",
+      "name": "I80 @ Robb Dr",
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/2ede2900-4f6b-4946-90ee-f7ff63f18a44_hspflirxcd01_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "9418",
+      "name": "I80 EB @ Mogul Truck Chk",
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/eb7bb590-c1d7-4553-bd70-ed6980f36a4a_hspflirxcd01_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "15927",
+      "name": "I80 @ East Verdi",
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/fafa232f-9a8f-456a-841e-09930f79d9dc_hspflirxcd03_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "9305",
+      "name": "I80 @ Boomtown Garson Rd",
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/bd93910f-d7c6-4636-99c4-6a1721dd42b4_hspflirxcd01_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "9324",
+      "name": "I80 @ Exit 2 Gold Ranch",
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/4f887b35-b620-4e09-9646-6bd54d7539ae_hspflirxcd01_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "21506",
+      "name": "I80 WB  Exit 1 GoldRanch",
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/c781f610-b56e-4236-a955-e9c3de2b0e9f_hspflirxcd03_public.stream/playlist.m3u8"
     }
   ]
 }

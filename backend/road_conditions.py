@@ -14,6 +14,7 @@ ROADWAY_TO_GROUPS: dict[str, list[str]] = {
     "I-580": ["washoe_lake", "south_reno"],
     "SR-341": ["south_reno"],
     "SR-659 (McCarran Blvd)": ["south_reno"],
+    "I-80": ["i80"],
 }
 
 

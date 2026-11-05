@@ -82,3 +82,5 @@ The existing cameras.json uses IDs (e.g. "5008") that don't match the current AP
 | Area | Lat range | Lon range |
 |------|-----------|-----------|
 | 89521 (South Reno) | 39.30–39.55 | -119.92 to -119.65 |
+| I-80 (Reno to Gold Ranch) | 39.48–39.55 | -120.01 to -119.82 |
+| Washoe Valley (I-580 / US-395) | 39.20–39.39 | -119.85 to -119.74 |
