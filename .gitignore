@@ -1,8 +1,5 @@
 .venv/
-.terraform/
 __pycache__/
-*.tfstate
-*.tfstate.backup
 .env
 .env*
 *.env
