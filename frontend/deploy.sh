@@ -6,7 +6,7 @@ npm run build
 
 # Get AWS account ID
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-BUCKET="road-analysis-reports-${ACCOUNT_ID}"
+BUCKET="road-conditions-${ACCOUNT_ID}"
 
 # Sync built assets to S3, excluding data files that Lambda manages
 aws s3 sync dist/ "s3://${BUCKET}/" \
