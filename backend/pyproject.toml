@@ -3,10 +3,10 @@ name = "road-analysis"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.15"
 dependencies = [
     "av>=19.0.2",
-    "boto3>=1.43.124",
+    "boto3>=1.44.4",
     "pillow>=13.0.0",
     "requests>=2.34.2",
 ]
