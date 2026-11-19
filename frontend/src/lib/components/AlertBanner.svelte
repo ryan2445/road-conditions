@@ -9,7 +9,7 @@
 </script>
 
 <div class="alerts">
-  {#each alerts as alert (alert.roadway + alert.condition)}
+  {#each alerts as alert, index (`${alert.roadway}-${alert.condition}-${index}`)}
     <div class="alert">
       <span class="alert-icon">&#9888;</span>
       <div class="alert-content">

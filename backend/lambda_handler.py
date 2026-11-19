@@ -1,8 +1,7 @@
 import json
+import logging
 import os
 from typing import Any
-import logging
-import sys
 
 from publishing import serialize_results, upload_data_to_s3
 from reporting import format_report
@@ -11,10 +10,7 @@ from service import run_camera_analysis
 
 
 def handler(_event: Any, _context: Any) -> dict[str, Any]:
-    logging.basicConfig(
-        level=logging.INFO,
-        stream=sys.stdout,
-    )
+    logging.getLogger().setLevel(logging.INFO)
     logging.info("lambda handler invoked")
     grouped_results = run_camera_analysis()
     road_conditions = fetch_road_conditions()
