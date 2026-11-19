@@ -85,14 +85,14 @@
   ],
   "south_reno": [
     {
-      "id": "9322",
-      "name": "I580 @ Neil Rd",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/ae322144-57b0-4536-bdef-fde6ab3a0a9d_hspflirxcd01_public.stream/playlist.m3u8"
-    },
-    {
       "id": "9401",
       "name": "I580 @ South Meadows",
       "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/cc0a5f0c-99f5-4e97-bfb4-5ef95248a5d7_hspflirxcd03_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "9322",
+      "name": "I580 @ Neil Rd",
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/ae322144-57b0-4536-bdef-fde6ab3a0a9d_hspflirxcd01_public.stream/playlist.m3u8"
     }
   ],
   "i80": [
@@ -127,14 +127,14 @@
       "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/bd93910f-d7c6-4636-99c4-6a1721dd42b4_hspflirxcd01_public.stream/playlist.m3u8"
     },
     {
-      "id": "9324",
-      "name": "I80 @ Exit 2 Gold Ranch",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/4f887b35-b620-4e09-9646-6bd54d7539ae_hspflirxcd01_public.stream/playlist.m3u8"
-    },
-    {
       "id": "21506",
       "name": "I80 WB  Exit 1 GoldRanch",
       "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/c781f610-b56e-4236-a955-e9c3de2b0e9f_hspflirxcd03_public.stream/playlist.m3u8"
+    },
+    {
+      "id": "9324",
+      "name": "I80 @ Exit 2 Gold Ranch",
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/4f887b35-b620-4e09-9646-6bd54d7539ae_hspflirxcd01_public.stream/playlist.m3u8"
     }
   ]
 }
