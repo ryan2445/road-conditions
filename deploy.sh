@@ -15,6 +15,6 @@ aws lambda update-function-code --function-name road-conditions --image-uri 0799
 
 aws lambda wait function-updated --function-name road-conditions
 
-aws lambda invoke --function-name road-conditions --invocation-type Event /dev/null
+# aws lambda invoke --function-name road-conditions --invocation-type Event /dev/null
 
 echo "Deploy complete!"

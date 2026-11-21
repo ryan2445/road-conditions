@@ -3,138 +3,164 @@
     {
       "id": "5008",
       "name": "SR431 @ Thomas Creek",
-      "stream": "https://d2wse2.its.nv.gov/renoxcd02/797495db-db1f-4f3f-babd-645e58b709ed_hspflirxcd02_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov/renoxcd02/797495db-db1f-4f3f-babd-645e58b709ed_hspflirxcd02_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7796"
     },
     {
       "id": "5040",
       "name": "SR-431 @ Bullseye",
-      "stream": "https://d2wse2.its.nv.gov/renoxcd02/6c4e3db1-7f04-4098-b195-352c188e97af_hspflirxcd02_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov/renoxcd02/6c4e3db1-7f04-4098-b195-352c188e97af_hspflirxcd02_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7828"
     },
     {
       "id": "5093",
       "name": "SR-431 @ Mt Rose Ski Area",
-      "stream": "https://d2wse2.its.nv.gov/renoxcd02/d7cd62fd-1bdf-4102-91f5-0d94293d549f_hspflirxcd02_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov/renoxcd02/d7cd62fd-1bdf-4102-91f5-0d94293d549f_hspflirxcd02_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7881"
     },
     {
       "id": "5039",
       "name": "SR-431 @ Mt. Rose Dugway",
-      "stream": "https://d2wse2.its.nv.gov/renoxcd03/cfb37917-aae5-46ea-ae58-794abc098859_hspflirxcd03_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov/renoxcd03/cfb37917-aae5-46ea-ae58-794abc098859_hspflirxcd03_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7827"
     },
     {
       "id": "5265",
       "name": "SR431 Mt Rose Summit",
-      "stream": "https://d2wse2.its.nv.gov/renoxcd02/ec6b8c8f-7e43-4af3-a420-e7d91c1014ef_hspflirxcd02_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov/renoxcd02/ec6b8c8f-7e43-4af3-a420-e7d91c1014ef_hspflirxcd02_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7428"
     },
     {
       "id": "5004",
       "name": "SR431 West Side Meadows",
-      "stream": "https://d2wse2.its.nv.gov/renoxcd02/94ce9220-7e98-417b-9c9a-5ce303401695_hspflirxcd02_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov/renoxcd02/94ce9220-7e98-417b-9c9a-5ce303401695_hspflirxcd02_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7792"
     },
     {
       "id": "5046",
       "name": "SR431 @ Brake Check Area",
-      "stream": "https://d2wse2.its.nv.gov/renoxcd02/e12a4773-ea80-42cb-a8f0-50117f97510b_hspflirxcd02_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov/renoxcd02/e12a4773-ea80-42cb-a8f0-50117f97510b_hspflirxcd02_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7834"
     },
     {
       "id": "5266",
       "name": "SR431 Diamond Peak",
-      "stream": "https://d2wse2.its.nv.gov/renoxcd03/9c9baad9-db84-471d-aa62-19bb75a45441_hspflirxcd03_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov/renoxcd03/9c9baad9-db84-471d-aa62-19bb75a45441_hspflirxcd03_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7429"
     },
     {
       "id": "5627",
       "name": "SR431 Country Club Dr",
-      "stream": "https://d2wse2.its.nv.gov/renoxcd03/8680813f-95d1-47c0-bf28-e7d265e1fced_hspflirxcd03_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov/renoxcd03/8680813f-95d1-47c0-bf28-e7d265e1fced_hspflirxcd03_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7430"
     }
   ],
   "washoe_lake": [
     {
       "id": "9287",
       "name": "I580@Galena Forest Bridge",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/5bc7b2be-7856-4e47-8bf4-bb29ead9cb77_hspflirxcd03_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/5bc7b2be-7856-4e47-8bf4-bb29ead9cb77_hspflirxcd03_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7786"
     },
     {
       "id": "9286",
       "name": "I580@Galena Creek Bridge",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/56b31748-b28a-4f52-894c-b92ddb0fe617_hspflirxcd03_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/56b31748-b28a-4f52-894c-b92ddb0fe617_hspflirxcd03_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7785"
     },
     {
       "id": "18675",
       "name": "I580 NB Bowers Mansion Highmast",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/9f56a5fa-30af-4939-abe8-584242a1cd30_hspflirxcd03_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/9f56a5fa-30af-4939-abe8-584242a1cd30_hspflirxcd03_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7308"
     },
     {
       "id": "9295",
       "name": "I580 @ N. Washoe Valley",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/9bb80468-eb35-4904-99dc-9a2947f1c7e3_hspflirxcd02_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/9bb80468-eb35-4904-99dc-9a2947f1c7e3_hspflirxcd02_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7794"
     },
     {
       "id": "9435",
       "name": "US395 @ Washoe Lake Flood Watch",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/760c4f77-267e-46d9-a011-093f00d4c618_hspflirxcd03_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/760c4f77-267e-46d9-a011-093f00d4c618_hspflirxcd03_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7931"
     },
     {
       "id": "18677",
       "name": "I580 NB East Lake Onramp",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/b1ae816d-f2f9-47ff-a60c-abf5be29d6cd_hspflirxcd03_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/b1ae816d-f2f9-47ff-a60c-abf5be29d6cd_hspflirxcd03_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7309"
     },
     {
       "id": "9294",
       "name": "I580 @ Lakeview Hill",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/5a098c71-5e8f-4116-8754-66cdc1cbd2d1_hspflirxcd02_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd02/5a098c71-5e8f-4116-8754-66cdc1cbd2d1_hspflirxcd02_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7793"
     }
   ],
   "south_reno": [
     {
       "id": "9401",
       "name": "I580 @ South Meadows",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/cc0a5f0c-99f5-4e97-bfb4-5ef95248a5d7_hspflirxcd03_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/cc0a5f0c-99f5-4e97-bfb4-5ef95248a5d7_hspflirxcd03_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7897"
     },
     {
       "id": "9322",
       "name": "I580 @ Neil Rd",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/ae322144-57b0-4536-bdef-fde6ab3a0a9d_hspflirxcd01_public.stream/playlist.m3u8"
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/ae322144-57b0-4536-bdef-fde6ab3a0a9d_hspflirxcd01_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7821"
     }
   ],
   "i80": [
     {
       "id": "9310",
       "name": "I80 @ Stoker Overpass",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/d3ab027c-5b39-4dcb-b586-4b7b88d68f48_hspflirxcd01_public.stream/playlist.m3u8"
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/d3ab027c-5b39-4dcb-b586-4b7b88d68f48_hspflirxcd01_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7809"
     },
     {
       "id": "9308",
       "name": "I80 @ W McCarran Blvd",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/497b0fc4-a537-48a4-a5ed-b0457c08ff3d_hspflirxcd01_public.stream/playlist.m3u8"
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/497b0fc4-a537-48a4-a5ed-b0457c08ff3d_hspflirxcd01_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7807"
     },
     {
       "id": "9306",
       "name": "I80 @ Robb Dr",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/2ede2900-4f6b-4946-90ee-f7ff63f18a44_hspflirxcd01_public.stream/playlist.m3u8"
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/2ede2900-4f6b-4946-90ee-f7ff63f18a44_hspflirxcd01_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7805"
     },
     {
       "id": "9418",
       "name": "I80 EB @ Mogul Truck Chk",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/eb7bb590-c1d7-4553-bd70-ed6980f36a4a_hspflirxcd01_public.stream/playlist.m3u8"
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/eb7bb590-c1d7-4553-bd70-ed6980f36a4a_hspflirxcd01_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7914"
     },
     {
       "id": "15927",
       "name": "I80 @ East Verdi",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/fafa232f-9a8f-456a-841e-09930f79d9dc_hspflirxcd03_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/fafa232f-9a8f-456a-841e-09930f79d9dc_hspflirxcd03_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7302"
     },
     {
       "id": "9305",
       "name": "I80 @ Boomtown Garson Rd",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/bd93910f-d7c6-4636-99c4-6a1721dd42b4_hspflirxcd01_public.stream/playlist.m3u8"
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/bd93910f-d7c6-4636-99c4-6a1721dd42b4_hspflirxcd01_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7804"
     },
     {
       "id": "21506",
       "name": "I80 WB  Exit 1 GoldRanch",
-      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/c781f610-b56e-4236-a955-e9c3de2b0e9f_hspflirxcd03_public.stream/playlist.m3u8"
+      "stream": "https://d2wse2.its.nv.gov:443/renoxcd03/c781f610-b56e-4236-a955-e9c3de2b0e9f_hspflirxcd03_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7317"
     },
     {
       "id": "9324",
       "name": "I80 @ Exit 2 Gold Ranch",
-      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/4f887b35-b620-4e09-9646-6bd54d7539ae_hspflirxcd01_public.stream/playlist.m3u8"
+      "stream": "https://d2wse1.its.nv.gov:443/renoxcd01/4f887b35-b620-4e09-9646-6bd54d7539ae_hspflirxcd01_public.stream/playlist.m3u8",
+      "image": "https://www.nvroads.com/map/Cctv/7822"
     }
   ]
 }

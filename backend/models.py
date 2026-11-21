@@ -5,6 +5,7 @@ class CameraConfig(TypedDict):
     id: str
     name: str
     stream: NotRequired[str]
+    image: NotRequired[str]
 
 
 class CameraResult(TypedDict):

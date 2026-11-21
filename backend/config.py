@@ -2,6 +2,7 @@ import json
 import logging
 import re
 from pathlib import Path
+
 import requests
 
 from models import CameraConfig
@@ -116,15 +117,10 @@ def group_cameras(cameras: list[dict]) -> dict[str, list[CameraConfig]]:
         group_key = None
 
         if "I580" in road_upper or "I-580" in road_upper:
-            if lat >= 39.39:
-                group_key = "south_reno"
-            else:
-                group_key = "washoe_lake"
+            group_key = "south_reno" if lat >= 39.39 else "washoe_lake"
         elif "SR431" in road_upper or "SR-431" in road_upper:
             group_key = "mt_rose"
-        elif "MCCARRAN" in road_upper:
-            group_key = "south_reno"
-        elif "SR341" in road_upper or "SR-341" in road_upper:
+        elif "MCCARRAN" in road_upper or "SR341" in road_upper or "SR-341" in road_upper:
             group_key = "south_reno"
 
         if not group_key:

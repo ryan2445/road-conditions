@@ -1,7 +1,7 @@
 import logging
 
-from config import load_cameras
 from camera_sources import fetch_camera_image
+from config import load_cameras
 from models import CameraConfig, CameraResult
 
 
@@ -19,6 +19,11 @@ def collect_camera_results(
 
         image_bytes = image_result.get("image_bytes")
         if not image_bytes:
+            logging.warning(
+                "No image data returned for camera %s (id=%s)",
+                camera["name"],
+                camera["id"],
+            )
             results.append(_error_result(camera, "no image data"))
             continue
 
@@ -42,16 +47,19 @@ def run_camera_analysis(group: str | None = None) -> GroupedResults:
     cameras_by_group = load_cameras()
     if group:
         return {group: collect_camera_results(cameras_by_group[group])}
-    return {
-        name: collect_camera_results(cameras)
-        for name, cameras in cameras_by_group.items()
-    }
+    return {name: collect_camera_results(cameras) for name, cameras in cameras_by_group.items()}
 
 
 def _fetch_camera_result(camera: CameraConfig) -> CameraResult:
     try:
         image_bytes = fetch_camera_image(camera)
     except Exception as error:
+        logging.error(
+            "Failed to fetch camera %s (id=%s): %s",
+            camera["name"],
+            camera["id"],
+            error,
+        )
         return _error_result(camera, f"image fetch failed: {error}")
 
     return {
@@ -69,4 +77,3 @@ def _error_result(camera: CameraConfig, message: str) -> CameraResult:
         "error": True,
         "error_message": message,
     }
-
