@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import boto3
@@ -54,7 +54,7 @@ def upload_data_to_s3(
 
     s3 = boto3.client("s3", region_name=AWS_REGION)
     cloudfront = boto3.client("cloudfront", region_name=AWS_REGION)
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
 
     uploaded_keys: set[str] = set()
     groups_data = []
@@ -67,9 +67,7 @@ def upload_data_to_s3(
                     "name": result["name"],
                     "error": result["error"],
                     "error_message": result.get("error_message"),
-                    "image_url": (
-                        f"images/{result['id']}.jpg" if not result["error"] else None
-                    ),
+                    "image_url": (f"images/{result['id']}.jpg" if not result["error"] else None),
                 }
             )
 
@@ -100,9 +98,7 @@ def upload_data_to_s3(
     s3.put_object(
         Bucket=bucket,
         Key="data.json",
-        Body=json.dumps({"timestamp": timestamp, "groups": groups_data}).encode(
-            "utf-8"
-        ),
+        Body=json.dumps({"timestamp": timestamp, "groups": groups_data}).encode("utf-8"),
         ContentType="application/json",
     )
 

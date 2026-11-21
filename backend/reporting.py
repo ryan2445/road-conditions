@@ -21,4 +21,3 @@ def format_report(grouped_results: GroupedResults) -> str:
 
 def format_group_name(name: str) -> str:
     return name.replace("_", " ").title()
-

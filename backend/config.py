@@ -18,7 +18,7 @@ def load_cameras_from_json(
 ) -> dict[str, list[CameraConfig]]:
     """Loads the hardcoded cameras from cameras.json file."""
     with Path(path).open() as file:
-        return json.load(file)  # type: ignore[no-any-return]
+        return json.load(file)
 
 
 def load_cameras(
@@ -32,14 +32,22 @@ def load_cameras(
     #     # Ensure we got some cameras in our main groups
     #     if any(grouped.values()):
     #         logger.info(
-    #             "Successfully fetched and grouped cameras dynamically: mt_rose=%d, washoe_lake=%d, south_reno=%d",
-    #             len(grouped["mt_rose"]), len(grouped["washoe_lake"]), len(grouped["south_reno"])
+    #             "Successfully fetched and grouped cameras dynamically: "
+    #             "mt_rose=%d, washoe_lake=%d, south_reno=%d",
+    #             len(grouped["mt_rose"]),
+    #             len(grouped["washoe_lake"]),
+    #             len(grouped["south_reno"]),
     #         )
     #         return grouped
     #     else:
-    #         logger.warning("Dynamic fetching returned 0 categorized cameras, falling back to cameras.json")
+    #         logger.warning(
+    #             "Dynamic fetching returned 0 categorized cameras, falling back to cameras.json"
+    #         )
     # except Exception as err:
-    #     logger.warning("Failed to dynamically fetch cameras (error: %s), falling back to cameras.json", err)
+    #     logger.warning(
+    #         "Failed to dynamically fetch cameras (error: %s), falling back to cameras.json",
+    #         err,
+    #     )
 
     return load_cameras_from_json(path)
 

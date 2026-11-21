@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 
 import av
 import requests
+from av.error import FFmpegError
 from PIL import Image
 
 from models import CameraConfig
@@ -44,7 +45,7 @@ def fetch_camera_image(camera: CameraConfig) -> bytes:
     if stream_url:
         try:
             return fetch_hls_frame(stream_url, warn_on_final_error=bool(fallback_url))
-        except (requests.RequestException, ValueError, av.FFmpegError) as error:
+        except (requests.RequestException, ValueError, FFmpegError) as error:
             if not fallback_url:
                 raise
             logger.warning(

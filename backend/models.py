@@ -22,4 +22,3 @@ class RoadConditionAlert(TypedDict):
     condition: str
     secondaryConditions: list[str]
     lastUpdated: str
-
